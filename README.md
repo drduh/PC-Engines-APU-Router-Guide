@@ -491,14 +491,8 @@ To set an image blocker, edit `/etc/privoxy/user.action` to add the following to
 
 Congratulations, you've assembled, installed and configured a powerful wireless router for less than $200. Now you can stop wasting your money on off-the-shelf networking gear.
 
-If you want to make sure you've set up your firewall correctly, run a port scan from an external host:
+If you want to make sure you've set up your firewall correctly, run a port scan from an external host, e.g.:
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
 
-# Todo
-
-* Configure 802.1x authentication for WLAN
-* Implement on a BSD
-* Sandbox/harden programs
-* Automate software updates
-* Email alerts for low disk space, etc.
+Also see [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2) for OpenBSD instructions.
