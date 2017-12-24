@@ -51,17 +51,19 @@ By default, a memory test should run, and you should hear the board make a loud 
 
 # Prepare Debian installer
 
-Use another computer to prepare an operating system installer. I am using Debian 8 "Jessie" to prepare a Debian installer.
+Use another computer to prepare a netboot operating system installer.
 
 Insert a USB drive. Run `dmesg` to identify the disk to use.
 
-Erase and partition the disk, selecting `FAT16` as the partition type, and make it bootable:
+Erase and partition the disk using `cfdisk`, selecting `FAT16` as the partition type (<4GB in size), and make it bootable:
 
     $ sudo cfdisk /dev/sdd
 
 Install the [SYSLINUX bootloader](http://www.syslinux.org/wiki/index.php?title=Install):
 
     $ sudo syslinux /dev/sdd1
+
+**Note** If `syslinux` fails with "invalid media signature", install the package `dosfstools` and use `sudo mkfs.fat -F 16 -I /dev/sdd1` to create the proper filesystem.
 
 Mount the new filesystem (assuming USB disk is `/dev/sdd`):
 
@@ -73,20 +75,21 @@ Mount the new filesystem (assuming USB disk is `/dev/sdd`):
 
 Download netboot installer files:
 
-    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/jessie/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
+    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
 
-    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/jessie/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
+    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
-**(Optional)** Install non-free firmware (*apparently* needed by APU1D, but not APU2C):
+**Optional** Install non-free firmware (only required by APU1D, not APU2C):
 
-    $ curl -LfvO http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/jessie/current/firmware.zip
+    $ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
 
 Verify file integrity:
 
 ```
-$ shasum -a 256 linux initrd.gz
-599cb2358e8bfbbeea939978bab7054a7681304fdfb1469ad34a815356c8bf6a  linux
-ee69db088188d995f72f29c359ca2f09b7d011a0ec11592c35e18ca0c317c164  initrd.gz
+$ shasum -a 256 linux initrd.gz firmware.zip
+68569dc026acc385b79c0115a41f94ae9f494cd571523d3ac4b9f529c56586aa  linux
+0e6aab148a6facac1f1efb9450c6f3ccce18ba193f32af3916b1f4352c303152  initrd.gz
+61033e88d2d38776f850edb45f10edc5e957c472c8dc699ad9a7518b61df7abc  firmware.zip
 ```
 
 In the same `/mnt/usb` directory, create a file called `syslinux.cfg` with the following contents:
