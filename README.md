@@ -498,4 +498,4 @@ If you want to make sure you've set up your firewall correctly, run a port scan 
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
 
-Also see [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2) for OpenBSD instructions.
+Also see [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2) and [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router) repositories for OpenBSD instructions.
