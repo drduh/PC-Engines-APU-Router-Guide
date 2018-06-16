@@ -139,7 +139,7 @@ Unplug the USB drive and reboot after installation completes.
 At the GRUB menu, you may get stuck at:
 
 ```
-Loading Linux 3.16.0-4-amd64 ...
+Loading Linux 4.9.0-6-amd64 ...
 Loading initial ramdisk ...
 ```
 
@@ -156,20 +156,25 @@ If this is the case, press `e` at the kernel selection screen in GRUB, scroll do
 
 Press `Control-X` to continue booting. You should see verbose boot messages appear on the screen.
 
-To make this fix permanent later, edit `/etc/default/grub` and replace `quiet` with `nomodeset console=ttyS0,115200n8`, then run `sudo update-grub`
-
 **Note** If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
 # First login
 
-At the console prompt, log in, then escalate to root and install updates, and any necessary software:
+At the console prompt, log in, then escalate to root and install updates, and any necessary or optional software:
 
 ```
 $ su
 # apt-get update
 # apt-get upgrade
-# apt-get install tmux lsof vim zsh tcpdump iptables iptables-persistent sudo ssh curl dnsutils ntp make autoconf gcc gnupg gnupg-curl
+# apt-get install -y \
+  sudo ssh tmux lsof vim zsh tcpdump \
+  dnsmasq privoxy hostapd \
+  iptables iptables-persistent curl dnsutils ntp net-tools \
+  make autoconf gcc gnupg ca-certificates apt-transport-https \
+  man-db xclip screen minicom jmtpfs file feh scrot htop lshw
 ```
+
+Update grub to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
 
 If you'd like to enable "password-less" `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
 
@@ -178,30 +183,135 @@ If you'd like to enable "password-less" `sudo`, type `EDITOR=vi visudo` as the r
 Add:
 
     sysadm     ALL=(ALL) NOPASSWD:ALL
+    
+Where `sysadm` is your primary user id.
 
 Type `:x` to save and quit.
 
-Press `Control-D` to exit `su`.
+*(Optional)* Change the default login shell to `zsh`:
 
-**(Optional)** Type `chsh` to change the login shell to Z shell (zsh).
-
-Depending on your current network configuration, you may be able to connect over ssh to finish setting up Debian, or continue using serial console.
-
-With ssh, you can quickly copy over configuration and build files:
-
-    $ scp .tmux.conf .zshrc .vimrc sysadm@10.8.8.10:~
+    # chsh -s /usr/bin/zsh sysadm
+    
+Press `Control-D` to exit `su` when finished.
 
 # Configure network interfaces
 
-Edit `/etc/network/interfaces`:
+At this point, either an Ethernet or wireless network interface (or both) can be set up to continue the rest of the guide over SSH instead of the serial terminal.
+
+Connect an Ethernet cable between the middle port of the PC Engines board and another computer running Linux.
+
+On both computers, determine the interface names available:
+
+```
+root@pcengines# lshw -C network | grep "logical name"
+       logical name: enp1s0
+       logical name: enp2s0
+       logical name: enp3s0
+
+user@localhost$ sudo lshw -C network | grep "logical name"
+       logical name: eno1
+       logical name: enp3s0
+```
+
+On the PC Engines host, edit `/etc/network/interfaces` to append:
+
+```
+allow-hotplug enp2s0
+iface enp2s0 inet static
+        address 10.8.1.1
+        netmask 255.255.255.0
+        gateway 10.8.1.1
+```
+
+Then restart networking and bring up the interface:
+
+```
+# service networking restart
+# ifup enp2s0
+```
+
+On the other Linux computer, append:
+
+```
+allow-hotplug eno1
+iface eno1 inet static
+        address 10.8.1.2
+        netmask 255.255.255.0
+        gateway 10.8.1.1
+```
+
+Then also restart networking and bring up the interface:
+
+```
+$ sudo service networking restart
+$ sudo ifup eno1
+```
+
+It should now be possible to ping the router:
+
+```
+$ ping -c 1 10.8.1.1
+PING 10.8.1.1 (10.8.1.1) 56(84) bytes of data.
+64 bytes from 10.8.1.1: icmp_seq=1 ttl=64 time=0.693 ms
+```
+
+To configure the wireless interface, edit `/etc/network/interfaces` to include:
 
 ```
 auto wlan0
 iface wlan0 inet static
 address 192.168.1.1
 netmask 255.255.255.0
-# uncomment the following line to enable the Access Point daemon for Wi-Fi
-#hostapd /etc/hostapd.conf
+hostapd /etc/hostapd.conf
+```
+
+# Configure SSH
+
+An SSH connection to the router should now be able to be established, but not yet authorized:
+
+```
+$ ssh sysadm@10.8.1.1
+The authenticity of host '10.8.1.1 (10.8.1.1)' can't be established.
+ECDSA key fingerprint is SHA256:AAAAA.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '10.8.1.1' (ECDSA) to the list of known hosts.
+Permission denied (publickey,password).
+```
+
+Generate an SSH keypair on a computer that will be used to login to the router:
+
+```
+$ ssh-keygen -f ~/.ssh/pcengines -C 'sysadm'
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in .ssh/pcengines.
+Your public key has been saved in .ssh/pcengines.pub.
+```
+
+Copy the public key to clipboard:
+
+```
+$ cat ~/.ssh/pcengines.pub | xclip
+```
+
+Over the serial connection, as the configured user (e.g. `sysadm` - *not* `root`) on the router, configure SSH to accept that key:
+
+```
+$ mkdir ~/.ssh
+$ cat > ~/.ssh/authorized_keys
+[Paste the copied public key using the middle mouse button]
+[Press Control-D to save]
+```
+
+The SSH connection should now be accepted by specifying the private key:
+
+```
+$ ssh sysadm@10.8.1.1 -i ~/.ssh/pcengines
+Host key fingerprint is SHA256:AAAAA
+
+Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
+pcengines%
 ```
 
 # Configure DHCP and DNS
@@ -284,7 +394,7 @@ DMZ=eth2
 WIFI=wlan0
 
 INT_NET=172.16.1.0/24
-DMZ_NET=10.8.4.0/24
+DMZ_NET=10.8.1.0/24
 WIFI_NET=192.168.1.0/24
 
 echo "Flush rules"
@@ -443,11 +553,11 @@ Verify outgoing DNS is encrypted while quering a record, for example using `dig 
 ```
 $ sudo tcpdump -As800 -ni eth0 'tcp or udp'
 listening on eth0, link-type EN10MB (Ethernet), capture size 800 bytes
-IP 10.8.4.1.40259 > 104.196.xxx.xxx.5355: UDP, length 512
+IP 10.8.1.1.40259 > 104.196.xxx.xxx.5355: UDP, length 512
 E....$..@..7D...h..Q.C..............;b..>..u.]@.'....|.|.>|.2q..Z:..,..%0y..*.f^. .,.....fv.| .....}...........-i;{.w..@1....T.E$jP.q.....CV.7....".3]...,|......u..< .............u<@..3..^..m.MWD...s...}.u..v-..!.(....n..o..a.x.{....b$.kB0..4w..U...Y<x.4....~....l.......Q..m...Knx|.W..EI...h.
 #..ciQd..u..v..I`......Z$.gD..Gx....M.....!./f...d..-V...8$...bv.;..|.h..W~[.tj.R.....j.u..j..77.j.m..c.pF...:...cLu)_..}.UrH.YfuJ....bV...iK@n.lb....G.J...7.#.o.s...:.!....3.g..^..X../. .....2.
 ..th.....}.......{P,C?..O,f..^.w......:.h.....2HJ.{
-14:00:07.161703 IP 104.196.xxx.xxx.5355 > 10.8.4.1.40259: UDP, length 304
+14:00:07.161703 IP 104.196.xxx.xxx.5355 > 10.8.1.1.40259: UDP, length 304
 E..L7s..7.R.h..QD......C.8].r6fnvWj8,..%0y..*.f^..y/.[...+.K..._.u..]..>JTe..~....zA......T..+.%....j....n..-#.b....'Q..8.......C.,.R...4.).p....C.$k.p....@G.@@_BT.*.......v];...s....6....p..|.=.H".#}...r{.9..';.L...   .;.b0j,.y_.Y=..+..O.....N/..e.......M.+2.....q"Gl..v.E.+.[...`.....J....1...*....-Lx...X....6e.B.......j..[.C{.^.&.
 ^C
 ```
@@ -504,7 +614,7 @@ $ sudo service privoxy restart
 To set an image blocker, edit `/etc/privoxy/user.action` to add the following to the bottom:
 
 ```
-{+set-image-blocker{http://10.8.4.1/}}
+{+set-image-blocker{http://10.8.1.1/}}
 /.*.[jpg|jpeg|gif|png|tif|tiff]$
 ```
 
