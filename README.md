@@ -1,8 +1,4 @@
-**This guide is in-progress and not yet complete. Use at your own risk!**
-
 This is a hands-on guide to building your own router using a PC Engines [APU platform](http://www.pcengines.ch/apu.htm), installing a [Debian GNU/Linux](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) operating system and using it for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web filtering, and much more.
-
-It is **not** meant to be a canonical guide on best practices; I just like setting up my router and firewall in these ways.
 
 I am **not** responsible for anything you do nor break by following any of these steps.
 
@@ -55,17 +51,25 @@ Use another computer to prepare a netboot operating system installer.
 
 Insert a USB drive. Run `dmesg` to identify the disk to use.
 
-Erase and partition the disk using `cfdisk`, selecting `FAT16` as the partition type (<4GB in size), and make it bootable:
+Erase and partition the disk using `cfdisk`, selecting `FAT16 (6)` as the partition type (must be under 4GB in size), and make it bootable:
 
     $ sudo cfdisk /dev/sdd
+    
+You can also use a GUI-based software like `gparted` for the same.
+
+Install the master boot record:
+
+    $ sudo install-mbr /dev/sdd
+    
+Install the package `dosfstools` to create the proper filesystem:
+
+    $ sudo mkfs.fat -F 16 -I /dev/sdd1
 
 Install the [SYSLINUX bootloader](http://www.syslinux.org/wiki/index.php?title=Install):
 
     $ sudo syslinux /dev/sdd1
 
-**Note** If `syslinux` fails with "invalid media signature", install the package `dosfstools` and use `sudo mkfs.fat -F 16 -I /dev/sdd1` to create the proper filesystem.
-
-Mount the new filesystem (assuming USB disk is `/dev/sdd`):
+Mount the new filesystem:
 
     $ sudo mkdir /mnt/usb
 
@@ -79,7 +83,7 @@ Download netboot installer files:
 
     $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
-**Optional** Install non-free firmware (only required by APU1D, not APU2C):
+**Optional** Install non-free firmware (only required by PC Engines APU1D (uses Realtek RTL8111E), not APU2C):
 
     $ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
 
@@ -87,9 +91,9 @@ Verify file integrity:
 
 ```
 $ shasum -a 256 linux initrd.gz firmware.zip
-68569dc026acc385b79c0115a41f94ae9f494cd571523d3ac4b9f529c56586aa  linux
-0e6aab148a6facac1f1efb9450c6f3ccce18ba193f32af3916b1f4352c303152  initrd.gz
-61033e88d2d38776f850edb45f10edc5e957c472c8dc699ad9a7518b61df7abc  firmware.zip
+bea409469a665a930954c7ee1bbaa77964357988163d83a50ff741d1bbba0811  linux
+362be3860fc427b3fe81071741d56863b37a8fc05e3126142559782a9b9d0749  initrd.gz
+0aaee0d6388fc626317b0f248b9bd1d0954f847707a3d0e377e82761fd45aa41  firmware.zip
 ```
 
 In the same `/mnt/usb` directory, create a file called `syslinux.cfg` with the following contents:
@@ -103,6 +107,11 @@ kernel linux
 append vga=off initrd=initrd.gz console=ttyS0,115200n8 fb=false
 ```
 
+The directory contents should contain:
+
+    $ ls /mnt/usb
+    firmware.zip  initrd.gz  ldlinux.c32  ldlinux.sys  linux  syslinux.cfg
+
 Unmount the drive:
 
     $ cd
@@ -113,7 +122,7 @@ Unplug the drive and plug it into the APU.
 
 # Connect over serial
 
-On a client machine, start [screen](https://www.gnu.org/software/screen/manual/screen.html):
+On another computer, start [screen](https://www.gnu.org/software/screen/manual/screen.html):
 
     $ screen /dev/ttyUSB0 115200 8N1
 
@@ -121,9 +130,9 @@ Power up the APU board. Press `F10` and select USB boot.
 
 Connect an Ethernet cable for Internet access.
 
-Proceed through Debian installer, choosing the **internal mSATA hard drive** and GRUB installer selection appropriately (be careful *not* to select the USB drive!).
+Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
 
-Reboot after installation completes.
+Unplug the USB drive and reboot after installation completes.
 
 # First boot
 
