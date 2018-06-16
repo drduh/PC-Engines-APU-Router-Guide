@@ -462,7 +462,7 @@ $ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo 
 
 $ sudo vim /etc/lighttpd/magnet.luau
 
-$ curl https://github.com/drduh/config/blob/master/privoxy | sudo tee /etc/privoxy/config
+$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy | sudo tee /etc/privoxy/config
 
 $ sudo vim /etc/privoxy/config
 ```
