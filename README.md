@@ -314,11 +314,44 @@ Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
 pcengines%
 ```
 
+To make connecting and copying files over easier, append the following to `~/.ssh/config` on a client:
+
+```
+Host pcengines
+  HostName 10.8.1.1
+  IdentityFile ~/.ssh/pcengines
+  User sysadm
+  Port 22
+  ControlMaster auto
+  ControlPath ~/.ssh/master-%r@%h:%p
+  ControlPersist 1m
+```
+
+To connect:
+
+```
+$ ssh pcengines
+Host key fingerprint is SHA256:AAAAA
+
+Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
+
+Last login: Mon Jan 1 12:00:00 2018 from 10.8.4.2
+pcengines%
+```
+
+To copy files:
+
+```
+$ scp .tmux.conf .vimrc .zshrc pcengines:~
+```
+
+See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to better protect the SSH key and make it portable.
+
 # Configure DHCP and DNS
 
 Use [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) for [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
 
-Edit `/etc/dnsmasq.conf` to include something like:
+Edit `/etc/dnsmasq.conf` to include:
 
 ```
 dhcp-lease-max=15
@@ -340,6 +373,8 @@ bogus-priv
 Restart the service:
 
     $ sudo service dnsmasq restart
+    
+See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for additional options.
 
 ## Configure a Wireless Access Point
 
@@ -347,7 +382,7 @@ Restart the service:
 
     $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
 
-Edit `/etc/hostapd.conf` to include something like:
+Edit `/etc/hostapd.conf` to include:
 
 ```
 interface=wlan0
@@ -367,7 +402,7 @@ You may need to manually assign the interface an address:
 
 # Enable IP forwarding
 
-In order to be a router, IP forwarding must be enabled:
+In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt) must be enabled:
 
     $ sudo sysctl -w net.ipv4.ip_forward=1
 
@@ -381,7 +416,7 @@ Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 
 If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
-Create a file called `firewall.sh` with the following contents:
+Create a file called `firewall.sh` with the following contents or download a similar version from [drduh/config/firewall.sh](https://github.com/drduh/config/blob/master/firewall.sh):
 
 ```
 #!/bin/bash
@@ -470,9 +505,9 @@ iptables -A OUTPUT -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 
 iptables -A FORWARD -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 'FWD>'
 ```
 
-When you're finished, use `chmod +x iptables.sh` to make the file executable and apply it with `sudo ./iptables.sh`.
+When you're finished, use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
 
-To make the firewall rules permanent *after* applying them:
+To make the firewall rules permanent:
 
     $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 
@@ -578,16 +613,13 @@ exit 0
 
 To run your own DNSCrypt server, see [drduh/Debian-Privacy-Server-Guide#dnscrypt](https://github.com/drduh/Debian-Privacy-Server-Guide#dnscrypt).
 
-# Configure ad-blocking
-
-
 # Ad-blocking
 
 Install [Privoxy](https://www.privoxy.org/) and [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet)
 
     $ sudo apt-get install -y privoxy lighttpd lighttpd-mod-magnet
 
-Edit default configurations, or download and edit mine:
+Edit default configurations, or download and use [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf), [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau) and [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy):
 
 ```
 $ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
@@ -626,4 +658,7 @@ If you want to make sure you've set up your firewall correctly, run a port scan 
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
 
-Also see [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2) and [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router) repositories for OpenBSD instructions.
+# Similar work
+
+* [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2)
+* [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router)
