@@ -146,10 +146,19 @@ Loading initial ramdisk ...
 If this is the case, press `e` at the kernel selection screen in GRUB, scroll down and replace the word `quiet` with:
 
     nomodeset console=ttyS0,115200n8
+    
+**Note** If arrow keys do not work in GRUB, try using emacs key bindings to navigate the text field:
+
+* `Control-B` to move left
+* `Control-F` to move right
+* `Control-P` to move up
+* `Control-N` to move down
 
 Press `Control-X` to continue booting. You should see verbose boot messages appear on the screen.
 
-**Note** To make this fix permanent later, edit `/etc/default/grub` and replace `quiet` with `nomodeset console=ttyS0,115200n8`, then run `sudo update-grub`
+To make this fix permanent later, edit `/etc/default/grub` and replace `quiet` with `nomodeset console=ttyS0,115200n8`, then run `sudo update-grub`
+
+**Note** If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
 # First login
 
