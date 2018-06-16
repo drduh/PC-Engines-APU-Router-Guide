@@ -1,25 +1,29 @@
-This is a hands-on guide to building your own router using a PC Engines [APU platform](http://www.pcengines.ch/apu.htm), installing a [Debian GNU/Linux](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) operating system and using it for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web filtering, and much more.
+This is a guide to building a router using the PC Engines [APU platform](http://www.pcengines.ch/apu.htm), the [Debian GNU/Linux](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) operating system for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web filtering, and much more.
 
 I am **not** responsible for anything you do nor break by following any of these steps.
 
-See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Privacy-Server-Guide) which is similar to this guide, but is written for a remote server, and can be used in combination with this guide.
+See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Privacy-Server-Guide).
 
 # Overview
 
-The completed router configuration will enable: 
+The completed router configuration will enable:
 
-* 1x egress Ethernet interface for Internet routing - connected to WAN or a cable modem
-* 1x "trusted" Ethernet interface for local area networking - `10.8.1.0/24`
-* 1x "less-trusted" ([DMZ](https://en.wikipedia.org/wiki/DMZ_(computing))) Ethernet interface for local area networking - `172.16.1.0/24`
-* 1x Wireless interface for local area networking - `192.168.1.0/24`
+* An egress Ethernet interface for Internet routing - can be connected to WAN or a cable modem
+* A local Ethernet interface for low-trust devices - `10.8.1.0/24`
+* A local Ethernet interface for trusted devices - `172.16.1.0/24`
+* A local wireless interface for trusted devices - `192.168.1.0/24`
 
-As well as the following services (some optional, of course):
+The following software will enable the router and enchance security and privacy:
 
-* Dnsmasq to provide local DHCP and DNS
-* DNSCrypt to encrypt outgoing DNS traffic
-* IPTables to enable NAT, enforce access control and filter traffic
+* Dnsmasq to provide local DHCP and DNS with domain filtering
+* DNSCrypt to encrypt outgoing DNS traffic to a trusted provider
+* IPTables to enable NAT, enforce access control and block incoming traffic
 * Privoxy to intercept and filter Web requests
-* Lighttpd to serve static content, for example to replace unwanted ad images
+* Lighttpd to serve static content locally
+
+![network](https://user-images.githubusercontent.com/12475110/41503064-9e505032-717e-11e8-9b01-536abccd764d.png)
+
+*Example network topology configured using this guide*
 
 # Order hardware
 
@@ -167,11 +171,11 @@ $ su
 # apt-get update
 # apt-get upgrade
 # apt-get install -y \
-  sudo ssh tmux lsof vim zsh tcpdump \
-  dnsmasq privoxy hostapd \
-  iptables iptables-persistent curl dnsutils ntp net-tools \
-  make autoconf gcc gnupg ca-certificates apt-transport-https \
-  man-db xclip screen minicom jmtpfs file feh scrot htop lshw
+    sudo ssh tmux lsof vim zsh tcpdump \
+    dnsmasq privoxy hostapd \
+    iptables iptables-persistent curl dnsutils ntp net-tools \
+    make autoconf gcc gnupg ca-certificates apt-transport-https \
+    man-db xclip screen minicom jmtpfs file feh scrot htop lshw
 ```
 
 Update grub to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
@@ -335,7 +339,7 @@ Host key fingerprint is SHA256:AAAAA
 
 Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
 
-Last login: Mon Jan 1 12:00:00 2018 from 10.8.4.2
+Last login: Mon Jan 1 12:00:00 2018 from 10.8.1.2
 pcengines%
 ```
 
@@ -378,7 +382,7 @@ See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsm
 
 ## Configure a Wireless Access Point
 
-Install the default configuration:
+Install the default hostapd configuration:
 
     $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
 
@@ -392,7 +396,7 @@ wpa=2
 wpa_passphrase=super_secret_passphrase_999
 ```
 
-Or download and use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
+Or download and use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
 
     $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
 
@@ -416,98 +420,11 @@ To enable it permanently:
 
 # Configure the firewall
 
-Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall.
-
-If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
+Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall. If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
 Download and edit [drduh/config/firewall.sh](https://github.com/drduh/config/blob/master/firewall.sh):
 
     $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/firewall.sh
-
-Or create `firewall.sh` with:
-
-```
-#!/bin/bash
-
-PATH='/sbin'
-
-EXT=eth0
-INT=eth1
-DMZ=eth2
-WIFI=wlan0
-
-INT_NET=172.16.1.0/24
-DMZ_NET=10.8.1.0/24
-WIFI_NET=192.168.1.0/24
-
-echo "Flush rules"
-iptables -F
-iptables -t nat -F
-iptables -X
-iptables -Z
-
-iptables -P INPUT DROP
-iptables -P OUTPUT DROP
-iptables -P FORWARD DROP
-
-echo "Allow loopback"
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
-
-echo "Drop invalid states"
-iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
-iptables -A OUTPUT -m conntrack --ctstate INVALID -j DROP
-iptables -A FORWARD -m conntrack --ctstate INVALID -j DROP
-
-echo "Allow established, related and ICMP echo packets"
-iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
-
-echo "Allow DHCP"
-iptables -I INPUT -i $DMZ -p udp -m udp --dport 67 -m conntrack --ctstate NEW -j ACCEPT
-iptables -I INPUT -i $INT -p udp -m udp --dport 67 -m conntrack --ctstate NEW -j ACCEPT
-iptables -I INPUT -i $WIFI -p udp -m udp --dport 67 -m conntrack --ctstate NEW -j ACCEPT
-
-echo "Allow ssh from trusted Ethernet"
-iptables -A INPUT -i $INT -s $INT_NET -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
-
-echo "Allow DNS (TCP and UDP)"
-iptables -A INPUT -i $INT -s $INT_NET -p udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-iptables -A INPUT -i $INT -s $INT_NET -p tcp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-iptables -A INPUT -i $DMZ -s $DMZ_NET -p udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-iptables -A INPUT -i $DMZ -s $DMZ_NET -p tcp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-iptables -A INPUT -i $WIFI -s $WIFI_NET -p udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-iptables -A INPUT -i $WIFI -s $WIFI_NET -p tcp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
-
-echo "Add transparent Privoxy forwarding"
-iptables -A INPUT -i $INT -s $INT_NET -p tcp --dport 8118 -m conntrack --ctstate NEW -j ACCEPT
-iptables -t nat -A PREROUTING -i $INT -p tcp --dport 80 -j DNAT --to-destination 10.8.1.1:8118
-iptables -A INPUT -i $DMZ -s $DMZ_NET -p tcp --dport 8118 -m conntrack --ctstate NEW -j ACCEPT
-iptables -t nat -A PREROUTING -i $DMZ -p tcp --dport 80 -j DNAT --to-destination 172.16.1.1:8118
-iptables -A INPUT -i $WIFI -s $WIFI_NET -p tcp --dport 8118 -m conntrack --ctstate NEW -j ACCEPT
-iptables -t nat -A PREROUTING -i $WIFI -p tcp --dport 80 -j DNAT --to-destination 192.168.1.1:8118
-
-echo "Allow outgoing to Internet"
-iptables -A OUTPUT -o $EXT -d 0.0.0.0/0 -j ACCEPT
-
-echo "Allow traffic from the firewall to LAN"
-iptables -A OUTPUT -o $INT -d $INT_NET -j ACCEPT
-iptables -A OUTPUT -o $DMZ -d $DMZ_NET -j ACCEPT
-iptables -A OUTPUT -o $WIFI -d $WIFI_NET -j ACCEPT
-
-echo "Enable NAT"
-iptables -t nat -A POSTROUTING -o $EXT -j MASQUERADE
-iptables -A FORWARD -o $EXT -i $INT -s $INT_NET -m conntrack --ctstate NEW -j ACCEPT
-iptables -A FORWARD -o $EXT -i $DMZ -s $DMZ_NET -m conntrack --ctstate NEW -j ACCEPT
-iptables -A FORWARD -o $EXT -i $WIFI -s $WIFI_NET -m conntrack --ctstate NEW -j ACCEPT
-
-echo "Log dropped packets (to /var/log/kern.log)"
-iptables -A INPUT -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 'IN>'
-iptables -A OUTPUT -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 'OUT>'
-iptables -A FORWARD -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 'FWD>'
-```
 
 Use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
 
@@ -528,13 +445,13 @@ sudo /sbin/iptables-restore < /etc/iptables/rules.v4
 exit 0
 ```
 
-# Ad-blocking
+# Web filtering
 
 Install [Privoxy](https://www.privoxy.org/) and [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet)
 
     $ sudo apt-get install -y privoxy lighttpd lighttpd-mod-magnet
 
-Edit default configurations, or download and use [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf), [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau) and [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy):
+Download and edit [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf), [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau) and [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy):
 
 ```
 $ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
@@ -554,7 +471,6 @@ Restart both services and check to make sure they work.
 
 ```
 $ sudo service lighttpd restart
-
 $ sudo service privoxy restart
 ```
 
@@ -565,13 +481,15 @@ To set an image blocker, edit `/etc/privoxy/user.action` to add the following to
 /.*.[jpg|jpeg|gif|png|tif|tiff]$
 ```
 
-# Conclusion
+# Security and maintenance
 
-Congratulations, you've assembled, installed and configured a powerful wireless router for less than $200. Now you can stop wasting your money on off-the-shelf networking gear.
-
-If you want to make sure you've set up your firewall correctly, run a port scan from an external host, e.g.:
+To confirm the firewall is configured correctly, run a port scan from an external host or over the Tor network using [haad/proxychains](https://github.com/haad/proxychains):
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
+
+Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and log in to `apt-get update && apt-get upgrade` periodically - or configure automatic updates.
+
+So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -ef`), open network connections (`sudo lsof -Pni`) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
 # Similar work
 
