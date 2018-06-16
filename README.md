@@ -378,7 +378,7 @@ See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsm
 
 ## Configure a Wireless Access Point
 
-**(Optional)** Install the default configuration:
+Install the default configuration:
 
     $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
 
@@ -391,6 +391,10 @@ ssid="Hello, World!"
 wpa=2
 wpa_passphrase=super_secret_passphrase_999
 ```
+
+Or download and use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
+
+    $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
 
 Restart the service:
 
@@ -408,7 +412,7 @@ In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentatio
 
 To enable it permanently:
 
-    $ echo "net.ipv4.ip_forward = 1" | sudo tee --append /etc/sysctl.conf
+    $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
 # Configure the firewall
 
@@ -416,7 +420,11 @@ Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 
 If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
-Create a file called `firewall.sh` with the following contents or download a similar version from [drduh/config/firewall.sh](https://github.com/drduh/config/blob/master/firewall.sh):
+Download and edit [drduh/config/firewall.sh](https://github.com/drduh/config/blob/master/firewall.sh):
+
+    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/firewall.sh
+
+Or create `firewall.sh` with:
 
 ```
 #!/bin/bash
@@ -481,10 +489,6 @@ iptables -t nat -A PREROUTING -i $DMZ -p tcp --dport 80 -j DNAT --to-destination
 iptables -A INPUT -i $WIFI -s $WIFI_NET -p tcp --dport 8118 -m conntrack --ctstate NEW -j ACCEPT
 iptables -t nat -A PREROUTING -i $WIFI -p tcp --dport 80 -j DNAT --to-destination 192.168.1.1:8118
 
-echo "Example of blocking by IP address"
-iptables -A FORWARD -d 209.18.47.62 -j DROP
-iptables -A FORWARD -d 209.18.47.61 -j DROP
-
 echo "Allow outgoing to Internet"
 iptables -A OUTPUT -o $EXT -d 0.0.0.0/0 -j ACCEPT
 
@@ -505,13 +509,15 @@ iptables -A OUTPUT -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 
 iptables -A FORWARD -m limit --limit 1/sec -j LOG --log-level debug --log-prefix 'FWD>'
 ```
 
-When you're finished, use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
+Use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
+
+The PC Engines router should now be able to route packets. Confirm by sending an outbound ping from another computer connected to the router.
 
 To make the firewall rules permanent:
 
     $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 
-Add their restoration to `/etc/rc.local`, for example:
+Either install or `dpkg-reconfigure` the `iptables-persistent` package, or manually restore the rules on boot, for example by editing `/etc/rc.local`:
 
 ```
 #!/bin/sh -e
@@ -521,97 +527,6 @@ sudo /sbin/iptables-restore < /etc/iptables/rules.v4
 
 exit 0
 ```
-
-# Configure DNSCrypt
-
-Install DNSCrypt client to encrypt outgoing DNS from https://download.dnscrypt.org/dnscrypt-proxy/
-
-```
-$ curl -O https://download.dnscrypt.org/dnscrypt-proxy/dnscrypt-proxy-1.7.0.tar.gz
-
-$ curl -O https://download.dnscrypt.org/dnscrypt-proxy/dnscrypt-proxy-1.7.0.tar.gz.sig
-
-$ gpg dnscrypt*sig
-gpg: assuming signed data in `dnscrypt-proxy-1.7.0.tar.gz'
-gpg: Signature made Sun 31 Jul 2016 07:14:47 AM EDT using RSA key ID 2B6F76DA
-gpg: Can't check signature: public key not found
-
-$ gpg --recv 0x2b6f76da
-gpg: requesting key 2B6F76DA from hkp server keys.gnupg.net
-gpg: key BA709FE1: public key "Frank Denis (Jedi/Sector One) <pgp@pureftpd.org>" imported
-gpg: no ultimately trusted keys found
-gpg: Total number processed: 1
-gpg:               imported: 1  (RSA: 1)
-
-$ gpg dnscrypt*sig
-gpg: assuming signed data in `dnscrypt-proxy-1.7.0.tar.gz'
-gpg: Signature made Sun 31 Jul 2016 07:14:47 AM EDT using RSA key ID 2B6F76DA
-gpg: Good signature from "Frank Denis (Jedi/Sector One) <pgp@pureftpd.org>"
-gpg:                 aka "Frank Denis <github@pureftpd.org>"
-gpg:                 aka "Frank Denis <frank.denis@corp.ovh.com>"
-gpg:                 aka "Frank Denis (Jedi/Sector One) <j@pureftpd.org>"
-gpg:                 aka "Frank Denis (Jedi/Sector One) <0daydigest@pureftpd.org>"
-gpg: WARNING: This key is not certified with a trusted signature!
-gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: 54A2 B889 2CC3 D6A5 97B9  2B6C 2106 27AA BA70 9FE1
-     Subkey fingerprint: 0C79 83A8 FD9A 104C 6231  72CB 62F2 5B59 2B6F 76DA
-
-$ tar xf dnscrypt-proxy-1.7.0.tar.gz
-
-$ sudo apt-get -y install libsodium-dev libevent-dev
-
-$ ./configure
-
-$ make -sj4
-
-$ sudo make install
-```
-
-Start DNSCrypt:
-
-```
-$ sudo dnscrypt-proxy -a 127.0.0.1:40 -r 104.196.xxx.xxx:5355 -k 0FE2:[...]:13AC -N 2.dnscrypt-cert.duh.to
-[NOTICE] Starting dnscrypt-proxy 1.7.0
-[INFO] Generating a new session key pair
-[INFO] Done
-[INFO] Server certificate with serial #1475108830 received
-[INFO] This certificate is valid
-[INFO] Chosen certificate #1475108830 is valid from [2016-09-29] to [2017-09-29]
-[INFO] Server key fingerprint is C8AE:[...]:56A2
-[NOTICE] Proxying from 127.0.0.1:40 to 104.196.xxx.xxx:5355
-```
-
-To use DNSCrypt, edit `/etc/dnsmasq.conf` to include `server=127.0.0.1#40` and `sudo service dnsmasq restart`
-
-Verify outgoing DNS is encrypted while quering a record, for example using `dig a google.com`:
-
-```
-$ sudo tcpdump -As800 -ni eth0 'tcp or udp'
-listening on eth0, link-type EN10MB (Ethernet), capture size 800 bytes
-IP 10.8.1.1.40259 > 104.196.xxx.xxx.5355: UDP, length 512
-E....$..@..7D...h..Q.C..............;b..>..u.]@.'....|.|.>|.2q..Z:..,..%0y..*.f^. .,.....fv.| .....}...........-i;{.w..@1....T.E$jP.q.....CV.7....".3]...,|......u..< .............u<@..3..^..m.MWD...s...}.u..v-..!.(....n..o..a.x.{....b$.kB0..4w..U...Y<x.4....~....l.......Q..m...Knx|.W..EI...h.
-#..ciQd..u..v..I`......Z$.gD..Gx....M.....!./f...d..-V...8$...bv.;..|.h..W~[.tj.R.....j.u..j..77.j.m..c.pF...:...cLu)_..}.UrH.YfuJ....bV...iK@n.lb....G.J...7.#.o.s...:.!....3.g..^..X../. .....2.
-..th.....}.......{P,C?..O,f..^.w......:.h.....2HJ.{
-14:00:07.161703 IP 104.196.xxx.xxx.5355 > 10.8.1.1.40259: UDP, length 304
-E..L7s..7.R.h..QD......C.8].r6fnvWj8,..%0y..*.f^..y/.[...+.K..._.u..]..>JTe..~....zA......T..+.%....j....n..-#.b....'Q..8.......C.,.R...4.).p....C.$k.p....@G.@@_BT.*.......v];...s....6....p..|.=.H".#}...r{.9..';.L...   .;.b0j,.y_.Y=..+..O.....N/..e.......M.+2.....q"Gl..v.E.+.[...`.....J....1...*....-Lx...X....6e.B.......j..[.C{.^.&.
-^C
-```
-
-Add DNSCrypt to `/etc/rc.local` so that it starts on boot, for example:
-
-```
-#!/bin/sh -e
-
-# restore firewall rules
-sudo /sbin/iptables-restore < /etc/iptables/rules.v4
-
-# start dnscrypt-proxy (note the "&" to background the process)
-sudo dnscrypt-proxy -a 127.0.0.1:40 -r 104.196.xxx.xxx:5355 -k 0FE2:[...]:13AC -N 2.dnscrypt-cert.duh.to &
-
-exit 0
-```
-
-To run your own DNSCrypt server, see [drduh/Debian-Privacy-Server-Guide#dnscrypt](https://github.com/drduh/Debian-Privacy-Server-Guide#dnscrypt).
 
 # Ad-blocking
 
