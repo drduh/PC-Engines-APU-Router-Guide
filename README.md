@@ -31,19 +31,17 @@ Order hardware online from [PC Engines](http://www.pcengines.ch/order.htm) direc
 
 Here is a suggested parts list:
 
-| Quantity | Part | Description
-|----------|------|-------------
-| 1 | apu2c4 | APU.2C4 system board 4GB
-| 1 | case1d2bluu | Enclosure 3 LAN, blue
-| 1 | ac12vus2 | AC adapter 12V US plug for IT equipment
-| 1 | msata16e | SSD M-Sata 16GB MLC Phison
-| 1 | wle200nx | Compex WLE200NX miniPCI express card
-| 2 | pigsma | Cable I-PEX -> reverse SMA
-| 2 | antsmadb | Antenna reverse SMA dual band
+| Quantity | Part | Description | Cost
+|----------|------|-------------|------
+| 1 | apu2c4 | APU.2C4 system board 4GB | $132.00
+| 1 | case1d2bluu | Enclosure 3 LAN, blue | $10.00
+| 1 | ac12vus2 | AC adapter 12V 2A US plug | $4.40
+| 1 | msata16g | SSD M-Sata 16GB MLC, Phison S11 | $17.80
+| 1 | wle200nx | Compex WLE200NX miniPCI express card | $19.00
+| 2 | pigsma | Cable I-PEX -> reverse SMA | $3.00
+| 2 | antsmadb | Antenna reverse SMA dual band | $4.10
 
-Total cost: $185, including shipping.
-
-To connect over serial, you will also need something like [Sabrent USB 2.0 to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Tripp Lite Null Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH).
+To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH).
 
 # Assemble hardware
 
@@ -194,7 +192,7 @@ $ su
     dnsmasq privoxy hostapd \
     iptables iptables-persistent curl dnsutils ntp net-tools \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
-    man-db xclip screen minicom jmtpfs file feh scrot htop lshw
+    man-db xclip screen minicom jmtpfs file feh scrot htop lshw less
 ```
 
 Update grub to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
@@ -230,6 +228,7 @@ root@pcengines# lshw -C network | grep "logical name"
        logical name: enp1s0
        logical name: enp2s0
        logical name: enp3s0
+       logical name: wlp4s0
 
 user@localhost$ sudo lshw -C network | grep "logical name"
        logical name: eno1
@@ -241,9 +240,9 @@ On the PC Engines host, edit `/etc/network/interfaces` to append:
 ```
 allow-hotplug enp2s0
 iface enp2s0 inet static
-        address 10.8.1.1
-        netmask 255.255.255.0
-        gateway 10.8.1.1
+address 10.8.1.1
+netmask 255.255.255.0
+gateway 10.8.1.1
 ```
 
 Then restart networking and bring up the interface:
@@ -258,9 +257,9 @@ On the other Linux computer, append:
 ```
 allow-hotplug eno1
 iface eno1 inet static
-        address 10.8.1.2
-        netmask 255.255.255.0
-        gateway 10.8.1.1
+address 10.8.1.2
+netmask 255.255.255.0
+gateway 10.8.1.1
 ```
 
 Then also restart networking and bring up the interface:
@@ -281,8 +280,8 @@ PING 10.8.1.1 (10.8.1.1) 56(84) bytes of data.
 To configure the wireless interface, edit `/etc/network/interfaces` to include:
 
 ```
-auto wlan0
-iface wlan0 inet static
+auto wlp4s0
+iface wlp4s0 inet static
 address 192.168.1.1
 netmask 255.255.255.0
 hostapd /etc/hostapd.conf
