@@ -29,25 +29,44 @@ The following software will enable the router and enchance security and privacy:
 
 Order hardware online from [PC Engines](http://www.pcengines.ch/order.htm) directly, or through a reseller.
 
-Here is a suggested parts list (total cost - $185, including shipping):
+Here is a suggested parts list:
 
-* 1x apu2c4 APU.2C4 system board 4GB
-* 1x case1d2bluu Enclosure 3 LAN, blue, USB
-* 1x ac12vus2 AC adapter 12V US plug for IT equipment
-* 1x msata16e SSD M-Sata 16GB MLC Phison
-* 1x wle200nx Compex WLE200NX miniPCI express card
-* 2x pigsma Cable I-PEX -> reverse SMA
-* 2x antsmadb Antenna reverse SMA dual band
+| Quantity | Part | Description
+|----------|------|-------------
+| 1 | apu2c4 | APU.2C4 system board 4GB
+| 1 | case1d2bluu | Enclosure 3 LAN, blue
+| 1 | ac12vus2 | AC adapter 12V US plug for IT equipment
+| 1 | msata16e | SSD M-Sata 16GB MLC Phison
+| 1 | wle200nx | Compex WLE200NX miniPCI express card
+| 2 | pigsma | Cable I-PEX -> reverse SMA
+| 2 | antsmadb | Antenna reverse SMA dual band
+
+Total cost: $185, including shipping.
 
 To connect over serial, you will also need something like [Sabrent USB 2.0 to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Tripp Lite Null Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH).
 
 # Assemble hardware
 
-Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](http://www.pcengines.ch/apucool.htm) to install the heat conduction plate. Attach the mSATA disk, network card, antenna, and screw the enclosure shut.
+Read over the APU2 series [board reference](http://www.pcengines.ch/pdf/apu2.pdf) document before starting.
+
+Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](http://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
+
+Attach the mSATA disk and miniPCI wireless adapter.
+
+**Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
+
+> 1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
+> 2. Install the radio card in the miniPCI express socket.
+> 3. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
+> 4. Touch the I-PEX connector of the pigtail to the mounting hole (discharge), then plug onto the radio card (this is where the pre-requisite patience comes in.
 
 Power on the board. To avoid arcing, plug in the DC jack first, then plug the adapter into mains.
 
-By default, a memory test should run, and you should hear the board make a loud "beep" noise.
+By default, a memory test should run, and you should hear the board make a loud "beep" noise. If not, reboot and press `F10` to select `Payload [memtest]` and complete at least one pass.
+
+# Flash BIOS
+
+*TODO: Add instructions for updating bios.*
 
 # Prepare Debian installer
 
@@ -126,7 +145,7 @@ Unplug the drive and plug it into the APU.
 
 # Connect over serial
 
-On another computer, start [screen](https://www.gnu.org/software/screen/manual/screen.html):
+On another computer, start [screen](https://www.gnu.org/software/screen/manual/screen.html). The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit):
 
     $ screen /dev/ttyUSB0 115200 8N1
 
