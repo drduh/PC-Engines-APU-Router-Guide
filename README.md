@@ -63,13 +63,23 @@ Power on the board. To avoid arcing, plug in the DC jack first, then plug the ad
 
 By default, a memory test should run, and you should hear the board make a loud "beep" noise. If not, reboot and press `F10` to select `Payload [memtest]` and complete at least one pass.
 
-# Prepare Debian installer
+# Prepare OS installation
 
-Use another computer to prepare a netboot operating system installer.
+Use another computer to prepare a operating system installer.
 
-Insert a USB drive. Run `dmesg` to identify the disk to use.
+Insert a USB disk. Run `dmesg` to identify it.
 
-Erase and partition the disk using `cfdisk`, selecting `FAT16 (6)` as the partition type (must be under 4GB in size), and make it bootable:
+## Debian
+
+### Easy way
+
+Download the latest [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image and copy it to the USB disk:
+
+    $ sudo dd if=debian-9.4.0-amd64-netinst.iso of=/dev/sdd bs=1M
+
+### Manual way
+
+Erase and partition the USB disk using `cfdisk`, selecting `FAT16 (6)` as the partition type (must be under 4GB in size), and make it bootable:
 
     $ sudo cfdisk /dev/sdd
     
@@ -95,13 +105,13 @@ Mount the new filesystem:
 
     $ cd /mnt/usb
 
-Download netboot installer files (using the [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image may also work):
+Download netboot installer files:
 
     $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
 
     $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
-**Optional** Install non-free firmware (only required by PC Engines APU1D (uses Realtek RTL8111E), not APU2C):
+**Optional** Install non-free firmware (only required by APU1D (uses Realtek RTL8111E), not APU2C):
 
     $ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
 
@@ -136,7 +146,13 @@ Unmount the drive:
 
     $ sudo umount /mnt/usb
 
-Unplug the drive and plug it into the APU.
+Unplug the USB disk and plug it into the APU.
+
+## OpenBSD
+
+Download the latest OpenBSD installer, [`amd64/install63.fs`](http://ftp.openbsd.org/pub/OpenBSD/6.3/amd64/install63.fs) and copy it to the USB disk:
+
+    $ sudo dd if=install63.fs of=/dev/sdd bs=1M
 
 # Connect over serial
 
@@ -146,8 +162,9 @@ On another computer, start [screen](https://www.gnu.org/software/screen/manual/s
 
 Power up the APU board, DC jack first. Make note of the BIOS version displayed briefly before POST.
 
-If the version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB drive and write the TinyCore image, then copy the latest firmware:
+# Updating BIOS
 
+If the version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the latest firmware:
 
 ```shell
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
@@ -162,7 +179,7 @@ $ sudo cp apu4_v4.8.0.2.rom /mnt/usb
 $ sudo umount /mnt/usb
 ```
 
-Unplug the USB drive and connect it to PC Engines, then boot to it using `F10`.
+Unplug the USB disk and connect it to the APU, then boot to it using `F10`.
 
 Flash the BIOS:
 
@@ -177,9 +194,15 @@ Verify the correct BIOS version right after rebooting.
 
 # Installing the OS
 
-Press `F10` and select USB boot. Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
+Press `F10` and select USB boot.
 
-If installing OpenBSD, set serial console parameters before starting installation:
+## Debian
+
+Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
+
+## OpenBSD
+
+Set serial console parameters before starting installation:
 
 ```shell
 >> OpenBSD/amd64 BOOT 3.34
@@ -194,6 +217,8 @@ When presented with a list of network interfaces, `em0` is the one closest to th
     Available network interfaces are: em0 em1 em2 em3 vlan0.
 
 # First boot
+
+## Debian
 
 After installation, at the GRUB menu, you may get stuck at:
 
@@ -217,15 +242,23 @@ Press `Control-X` to continue booting. You should see verbose boot messages appe
 
 **Note** If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
+## OpenBSD
+
+The following parameters should have been appended to `/etc/boot.conf` by the installer:
+
+    stty com0 115200
+    set tty com0
+
 # First login
 
-At the console prompt, log in, then escalate to root and install updates, and any necessary or optional software:
+## Debian
+
+Login as `root`, install and update any software that may be needed:
 
 ```
-$ su
 # apt-get update
-# apt-get upgrade
-# apt-get install -y \
+# apt-get -y upgrade
+# apt-get -y install \
     sudo ssh tmux lsof vim zsh tcpdump \
     dnsmasq privoxy hostapd nmap \
     iptables iptables-persistent curl dnsutils ntp net-tools \
@@ -233,7 +266,7 @@ $ su
     man-db xclip screen minicom jmtpfs file feh scrot htop lshw less
 ```
 
-Update grub to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
+Update GRUB to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
 
 If you'd like to enable "password-less" `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
 
@@ -250,14 +283,18 @@ Type `:x` to save and quit.
 *(Optional)* Change the default login shell to `zsh`:
 
     # chsh -s /usr/bin/zsh sysadm
-    
-Press `Control-D` to exit `su` when finished.
+
+## OpenBSD
+
+Login as `root`, install any pending updates with [`syspatch`](https://man.openbsd.org/syspatch). Install any needed software:
+
+    # pkg_add -Vv vim zsh nmap curl
 
 # Configure network interfaces
 
 At this point, either an Ethernet or wireless network interface (or both) can be set up to continue the rest of the guide over SSH instead of the serial terminal.
 
-Connect an Ethernet cable between the middle port of the PC Engines board and another computer running Linux.
+Connect an Ethernet cable between the middle port of the APU board and another computer running Linux.
 
 On both computers, determine the interface names available:
 
@@ -273,7 +310,7 @@ user@localhost$ sudo lshw -C network | grep "logical name"
        logical name: enp3s0
 ```
 
-On the PC Engines host, edit `/etc/network/interfaces` to append:
+On the APU, edit `/etc/network/interfaces` to append:
 
 ```
 allow-hotplug enp2s0
@@ -484,7 +521,7 @@ Download and edit [drduh/config/firewall.sh](https://github.com/drduh/config/blo
 
 Use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
 
-The PC Engines router should now be able to route packets. Confirm by sending an outbound ping from another computer connected to the router.
+The APU router should now be able to route packets. Confirm by sending an outbound ping from another computer connected to the router.
 
 To make the firewall rules permanent:
 
