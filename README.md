@@ -641,6 +641,8 @@ Log in to `apt-get update && apt-get upgrade` periodically - or configure [unatt
 
 So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
+Also see [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
+
 # Similar work
 
 * [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2)
