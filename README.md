@@ -25,9 +25,9 @@ The following software will enable the router and enchance security and privacy:
 
 *Example network topology configured using this guide*
 
-# Order hardware
+# Hardware
 
-Order hardware online from [PC Engines](http://www.pcengines.ch/order.htm) directly, or through a reseller.
+Order hardware online from [PC Engines](https://www.pcengines.ch/order.htm) directly, or through a reseller.
 
 Here is a suggested parts list:
 
@@ -47,7 +47,7 @@ To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](
 
 Read over the APU2 series [board reference](http://www.pcengines.ch/pdf/apu2.pdf) document before starting.
 
-Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](http://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
+Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
 
 Attach the mSATA disk and miniPCI wireless adapter.
 
@@ -61,10 +61,6 @@ Attach the mSATA disk and miniPCI wireless adapter.
 Power on the board. To avoid arcing, plug in the DC jack first, then plug the adapter into mains.
 
 By default, a memory test should run, and you should hear the board make a loud "beep" noise. If not, reboot and press `F10` to select `Payload [memtest]` and complete at least one pass.
-
-# Flash BIOS
-
-*TODO: Add instructions for updating bios.*
 
 # Prepare Debian installer
 
@@ -147,15 +143,46 @@ On another computer, start [screen](https://www.gnu.org/software/screen/manual/s
 
     $ screen /dev/ttyUSB0 115200 8N1
 
-Power up the APU board. Press `F10` and select USB boot.
+Power up the APU board, DC jack first. Make note of the BIOS version displayed briefly before POST.
+
+If the version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB drive and write the TinyCore image, then copy the latest firmware:
+
+
+```shell
+$ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
+511+0 records in
+511+0 records out
+535822336 bytes (536 MB, 511 MiB) copied, 22.9026 s, 23.4 MB/s
+
+$ sudo mount /dev/sdd1 /mnt/usb
+
+$ sudo cp apu4_v4.8.0.2.rom /mnt/usb
+
+$ sudo umount /mnt/usb
+```
+
+Unplug the USB drive and connect it to PC Engines, then boot to it using `F10`.
+
+Flash the BIOS:
+
+```shell
+root@box:~# flashrom -p internal -w /media/SYSLINUX/apu4_v4.8.0.2.rom
+```
+
+![Using flashrom](https://user-images.githubusercontent.com/12475110/43032327-eba5b3ea-8c68-11e8-8ded-8d1d0eb32720.png)
+*Specifying "boardmismatch" was necessary with a newer APU4 model*
+
+Verify the correct BIOS version right after rebooting.
+
+# Installing the OS
+
+Press `F10` and select USB boot.
 
 Connect an Ethernet cable for Internet access.
 
 Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
 
 Unplug the USB drive and reboot after installation completes.
-
-# First boot
 
 At the GRUB menu, you may get stuck at:
 
