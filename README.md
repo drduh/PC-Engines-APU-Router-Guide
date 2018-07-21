@@ -268,7 +268,7 @@ Login as `root`, install and update any software that may be needed:
 
 Update GRUB to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
 
-If you'd like to enable "password-less" `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
+To enable password-less `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
 
     %sudo   ALL=(ALL:ALL) ALL
 
@@ -290,15 +290,22 @@ Login as `root`, install any pending updates with [`syspatch`](https://man.openb
 
     # pkg_add -Vv vim zsh nmap curl
 
+Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf). For a similar password-less setup to the section above, use:
+
+```
+permit nopass keepenv :wheel
+permit nopass keepenv root
+```
+
 # Configure network interfaces
 
 At this point, either an Ethernet or wireless network interface (or both) can be set up to continue the rest of the guide over SSH instead of the serial terminal.
 
-Connect an Ethernet cable between the middle port of the APU board and another computer running Linux.
+## Debian
 
-On both computers, determine the interface names available:
+From the APU and another Linux computer, determine the interface names available:
 
-```
+```shell
 root@pcengines# lshw -C network | grep "logical name"
        logical name: enp1s0
        logical name: enp2s0
@@ -323,8 +330,8 @@ gateway 10.8.1.1
 Then restart networking and bring up the interface:
 
 ```
-# service networking restart
-# ifup enp2s0
+$ sudo service networking restart
+$ sudo ifup enp2s0
 ```
 
 On the other Linux computer, append:
@@ -361,6 +368,18 @@ address 192.168.1.1
 netmask 255.255.255.0
 hostapd /etc/hostapd.conf
 ```
+
+## OpenBSD
+
+On the APU, set a local network interface address:
+
+    $ doas ifconfig em1 10.8.1.1 255.255.255.0
+
+Make it permanent:
+
+    $ echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
+
+Configure a client to connect using the section above or set up DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html).
 
 # Configure SSH
 
@@ -444,9 +463,9 @@ $ scp .tmux.conf .vimrc .zshrc pcengines:~
 
 See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to better protect the SSH key and make it portable.
 
-# Configure DHCP and DNS
+# DHCP and DNS
 
-Use [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) for [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
+[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
 
 Edit `/etc/dnsmasq.conf` to include:
 
@@ -467,13 +486,28 @@ stop-dns-rebind
 bogus-priv
 ```
 
+## Debian
+
 Restart the service:
 
     $ sudo service dnsmasq restart
+
+## OpenBSD
+
+Start the service:
+
+    $ doas rcctl start dnsmasq
+    dnsmasq(ok)
+
+On boot:
+
+    $ doas rcctl enable dnsmasq
     
 See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for additional options.
 
-## Configure a Wireless Access Point
+# Wireless Access Point
+
+## Debian
 
 Install the default hostapd configuration:
 
@@ -501,17 +535,29 @@ You may need to manually assign the interface an address:
 
     $ sudo ifconfig wlan0 192.168.1.1
 
-# Enable IP forwarding
+# IP forwarding
 
-In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt) must be enabled:
+In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt) must be enabled.
+
+## Debian
+
+Enable it now:
 
     $ sudo sysctl -w net.ipv4.ip_forward=1
 
-To enable it permanently:
+Enable it permanently:
 
     $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
-# Configure the firewall
+## OpenBSD
+
+To enable IP forwarding:
+
+    $ echo 'net.inet.ip.forwarding=1' | doas tee -a /etc/sysctl.conf
+
+# Configure firewall
+
+## Debian
 
 Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall. If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
@@ -538,11 +584,19 @@ sudo /sbin/iptables-restore < /etc/iptables/rules.v4
 exit 0
 ```
 
+## OpenBSD
+
+Follow [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html) documentation for now.
+
 # Web filtering
 
-Install [Privoxy](https://www.privoxy.org/) and [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet)
+[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs. It may be used in combination with [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) to block or replace ads/content with custom images, for example.
 
-    $ sudo apt-get install -y privoxy lighttpd lighttpd-mod-magnet
+## Debian
+
+To install required software:
+
+    $ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
 
 Download and edit [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf), [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau) and [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy):
 
@@ -581,7 +635,9 @@ To confirm the firewall is configured correctly, run a port scan from an externa
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
 
-Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and log in to `apt-get update && apt-get upgrade` periodically - or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) or [OpenBSD errata](https://www.openbsd.org/errata.html).
+
+Log in to `apt-get update && apt-get upgrade` periodically - or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
 So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
