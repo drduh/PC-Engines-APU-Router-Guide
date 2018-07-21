@@ -1,4 +1,4 @@
-This is a guide to building a router using the PC Engines [APU platform](http://www.pcengines.ch/apu.htm), the [Debian GNU/Linux](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) operating system for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web filtering, and much more.
+This is a guide to building a router using the PC Engines [APU platform](http://www.pcengines.ch/apu.htm) and an operating system like [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) or [OpenBSD](https://www.openbsd.org/) for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web traffic filtering, and much more.
 
 I am **not** responsible for anything you do nor break by following any of these steps.
 
@@ -9,9 +9,10 @@ See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Pri
 The completed router configuration will enable:
 
 * An egress Ethernet interface for Internet routing - can be connected to WAN or a cable modem
+* A local wireless interface for trusted devices - `192.168.1.0/24`
 * A local Ethernet interface for low-trust devices - `10.8.1.0/24`
 * A local Ethernet interface for trusted devices - `172.16.1.0/24`
-* A local wireless interface for trusted devices - `192.168.1.0/24`
+* An additonal (4th) Ethernet interface is available on APU4+
 
 The following software will enable the router and enchance security and privacy:
 
@@ -94,7 +95,7 @@ Mount the new filesystem:
 
     $ cd /mnt/usb
 
-Download netboot installer files:
+Download netboot installer files (using the [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image may also work):
 
     $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
 
@@ -176,15 +177,25 @@ Verify the correct BIOS version right after rebooting.
 
 # Installing the OS
 
-Press `F10` and select USB boot.
+Press `F10` and select USB boot. Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
 
-Connect an Ethernet cable for Internet access.
+If installing OpenBSD, set serial console parameters before starting installation:
 
-Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
+```shell
+>> OpenBSD/amd64 BOOT 3.34
+boot> stty com0 115200
+boot> set tty com0
+switching console to com>> OpenBSD/amd64 BOOT 3.34
+boot> [Press Enter]
+```
 
-Unplug the USB drive and reboot after installation completes.
+When presented with a list of network interfaces, `em0` is the one closest to the serial port:
 
-At the GRUB menu, you may get stuck at:
+    Available network interfaces are: em0 em1 em2 em3 vlan0.
+
+# First boot
+
+After installation, at the GRUB menu, you may get stuck at:
 
 ```
 Loading Linux 4.9.0-6-amd64 ...
@@ -216,7 +227,7 @@ $ su
 # apt-get upgrade
 # apt-get install -y \
     sudo ssh tmux lsof vim zsh tcpdump \
-    dnsmasq privoxy hostapd \
+    dnsmasq privoxy hostapd nmap \
     iptables iptables-persistent curl dnsutils ntp net-tools \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
     man-db xclip screen minicom jmtpfs file feh scrot htop lshw less
@@ -516,6 +527,7 @@ Restart both services and check to make sure they work.
 
 ```
 $ sudo service lighttpd restart
+
 $ sudo service privoxy restart
 ```
 
@@ -532,9 +544,9 @@ To confirm the firewall is configured correctly, run a port scan from an externa
 
     $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
 
-Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and log in to `apt-get update && apt-get upgrade` periodically - or configure automatic updates.
+Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and log in to `apt-get update && apt-get upgrade` periodically - or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
-So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -ef`), open network connections (`sudo lsof -Pni`) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
+So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
 # Similar work
 
