@@ -216,6 +216,10 @@ When presented with a list of network interfaces, `em0` is the one closest to th
 
     Available network interfaces are: em0 em1 em2 em3 vlan0.
 
+To mount `/tmp` as `tmpfs` (in memory only), drop to a shell with `S` once installation completes and append the following to `/etc/fstab`:
+
+    swap /tmp mfs rw,noexec,nosuid,nodev,-s=256M 0 0
+
 # First boot
 
 ## Debian
@@ -286,9 +290,13 @@ Type `:x` to save and quit.
 
 ## OpenBSD
 
-Login as `root`, install any pending updates with [`syspatch`](https://man.openbsd.org/syspatch). Install any needed software:
+Login as `root`, install any pending updates with [`syspatch`](https://man.openbsd.org/syspatch).
 
-    # pkg_add -Vv vim zsh nmap curl
+    # syspatch
+
+Install any needed software:
+
+    # pkg_add -Vv vim zsh nmap curl pftop vnstat
 
 Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf). For a similar password-less setup to the section above, use:
 
@@ -586,7 +594,7 @@ exit 0
 
 ## OpenBSD
 
-Follow [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html) documentation for now.
+See [drduh/config/pf.conf](https://github.com/drduh/config/blob/master/pf.conf) and follow [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html) documentation for now.
 
 # Web filtering
 
@@ -633,13 +641,13 @@ To set an image blocker, edit `/etc/privoxy/user.action` to add the following to
 
 To confirm the firewall is configured correctly, run a port scan from an external host or over the Tor network using [haad/proxychains](https://github.com/haad/proxychains):
 
-    $ nmap -v -A -T4 xxx.xxx.xxx.xxx -Pn
+    $ nmap -v -A -T4 1.2.3.4 -Pn
 
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) or [OpenBSD errata](https://www.openbsd.org/errata.html).
 
-Log in to `apt-get update && apt-get upgrade` periodically - or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
-So long as no ports/services are exposed to the Internet interface, the risk of compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
+So long as no ports/services are exposed to the Internet interface, the risk of remote compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
 Also see [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
 
