@@ -75,7 +75,7 @@ Insert a USB disk. Run `dmesg` to identify it.
 
 Download the latest [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image and copy it to the USB disk:
 
-    $ sudo dd if=debian-9.4.0-amd64-netinst.iso of=/dev/sdd bs=1M
+    $ sudo dd if=debian-9.5.0-amd64-netinst.iso of=/dev/sdd bs=1M
 
 ### Manual way
 
@@ -456,9 +456,7 @@ To connect:
 ```
 $ ssh pcengines
 Host key fingerprint is SHA256:AAAAA
-
 Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
-
 Last login: Mon Jan 1 12:00:00 2018 from 10.8.1.2
 pcengines%
 ```
@@ -473,9 +471,7 @@ See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to better prot
 
 # DHCP and DNS
 
-[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
-
-Edit `/etc/dnsmasq.conf` to include:
+[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS. See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for recommended options. Edit `/etc/dnsmasq.conf` to include at least the following:
 
 ```
 dhcp-lease-max=15
@@ -500,6 +496,10 @@ Restart the service:
 
     $ sudo service dnsmasq restart
 
+Enable on boot:
+
+    $ sudo update-rc.d dnsmasq enable
+
 ## OpenBSD
 
 Start the service:
@@ -507,11 +507,10 @@ Start the service:
     $ doas rcctl start dnsmasq
     dnsmasq(ok)
 
-On boot:
+Enable on boot:
 
     $ doas rcctl enable dnsmasq
     
-See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for additional options.
 
 # Wireless Access Point
 
@@ -521,7 +520,11 @@ Install the default hostapd configuration:
 
     $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
 
-Edit `/etc/hostapd.conf` to include:
+Or download and use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
+
+    $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
+
+At a minimum, it should include:
 
 ```
 interface=wlan0
@@ -531,15 +534,11 @@ wpa=2
 wpa_passphrase=super_secret_passphrase_999
 ```
 
-Or download and use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
-
-    $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
-
 Restart the service:
 
     $ sudo service hostapd restart
 
-You may need to manually assign the interface an address:
+You may need to manually assign the interface an address manually:
 
     $ sudo ifconfig wlan0 192.168.1.1
 
@@ -549,17 +548,15 @@ In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentatio
 
 ## Debian
 
-Enable it now:
+Enable now:
 
     $ sudo sysctl -w net.ipv4.ip_forward=1
 
-Enable it permanently:
+Enable permanently:
 
     $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
 ## OpenBSD
-
-To enable IP forwarding:
 
     $ echo 'net.inet.ip.forwarding=1' | doas tee -a /etc/sysctl.conf
 
@@ -569,11 +566,11 @@ To enable IP forwarding:
 
 Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall. If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
-Download and edit [drduh/config/firewall.sh](https://github.com/drduh/config/blob/master/firewall.sh):
+Download and edit [drduh/config/iptables.sh](https://github.com/drduh/config/blob/master/iptables.sh):
 
-    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/firewall.sh
+    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/iptables.sh
 
-Use `chmod +x iptables.sh` to make the script executable and apply it with `sudo ./iptables.sh`.
+Use `chmod +x iptables.sh` to make the script executable and apply with `sudo ./iptables.sh`.
 
 The APU router should now be able to route packets. Confirm by sending an outbound ping from another computer connected to the router.
 
@@ -594,7 +591,17 @@ exit 0
 
 ## OpenBSD
 
-See [drduh/config/pf.conf](https://github.com/drduh/config/blob/master/pf.conf) and follow [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html) documentation for now.
+Download and edit [drduh/config/pf.conf](https://github.com/drduh/config/blob/master/pf.conf):
+
+    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf.conf
+
+Turn pf off and back on again:
+
+    $ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
+    pf disabled
+    pf enabled 
+
+See also [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html).
 
 # Web filtering
 
@@ -602,39 +609,30 @@ See [drduh/config/pf.conf](https://github.com/drduh/config/blob/master/pf.conf) 
 
 ## Debian
 
-To install required software:
+Install required software:
 
     $ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
 
-Download and edit [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf), [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau) and [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy):
+Edit the default configurations, or download and edit:
+
+* [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf)
+* [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau)
+* [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy)
+* [drduh/config/user.action](https://github.com/drduh/config/blob/master/user.action)
 
 ```
 $ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
-
-$ sudo vim /etc/lighttpd/lighttpd.conf
-
 $ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
-
-$ sudo vim /etc/lighttpd/magnet.luau
-
 $ curl https://raw.githubusercontent.com/drduh/config/master/privoxy | sudo tee /etc/privoxy/config
-
-$ sudo vim /etc/privoxy/config
+$ curl https://raw.githubusercontent.com/drduh/config/master/user.action | sudo tee /etc/privoxy/user.action
 ```
 
-Restart both services and check to make sure they work.
+Restart both services and check to make sure they work:
 
 ```
 $ sudo service lighttpd restart
 
 $ sudo service privoxy restart
-```
-
-To set an image blocker, edit `/etc/privoxy/user.action` to add the following to the bottom:
-
-```
-{+set-image-blocker{http://10.8.1.1/}}
-/.*.[jpg|jpeg|gif|png|tif|tiff]$
 ```
 
 # Security and maintenance
@@ -645,13 +643,15 @@ To confirm the firewall is configured correctly, run a port scan from an externa
 
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) or [OpenBSD errata](https://www.openbsd.org/errata.html).
 
-Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades). OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
 
-So long as no ports/services are exposed to the Internet interface, the risk of remote compromise is minimal. Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (`sudo lsof -Pni` or `doas fstat | grep net` on OpenBSD) and remote access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
+So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal (physical access and access is not addressed in this guide). Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (Debian: `sudo lsof -Pni`, OpenBSD: `doas netstat -an -p tcp -p udp` or `doas fstat|grep net`) and last access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
 
-Also see [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
+See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
 
 # Similar work
 
 * [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2)
 * [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router)
+* [vedetta-com/vedetta](https://github.com/vedetta-com/vedetta)
+
