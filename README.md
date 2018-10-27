@@ -150,9 +150,9 @@ Unplug the USB disk and plug it into the APU.
 
 ## OpenBSD
 
-Download the latest OpenBSD installer, [`amd64/install63.fs`](http://ftp.openbsd.org/pub/OpenBSD/6.3/amd64/install63.fs) and copy it to the USB disk:
+Download the latest OpenBSD installer, [`amd64/install64.fs`](https://cloudflare.cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) and copy the file to the USB device:
 
-    $ sudo dd if=install63.fs of=/dev/sdd bs=1M
+    $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
 # Connect over serial
 
@@ -591,9 +591,13 @@ exit 0
 
 ## OpenBSD
 
-Download and edit [drduh/config/pf.conf](https://github.com/drduh/config/blob/master/pf.conf):
+Download and edit [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/):
 
-    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf.conf
+    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
+
+    $ doas curl -Lfvo /etc/pf/blacklist https://raw.githubusercontent.com/drduh/config/master/pf/blacklist
+    $ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
+    $ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
 
 Turn pf off and back on again:
 
