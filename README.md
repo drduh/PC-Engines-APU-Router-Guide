@@ -649,7 +649,7 @@ To confirm the firewall is configured correctly, run a port scan from an externa
 
     $ nmap -v -A -T4 1.2.3.4 -Pn
 
-So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal (physical access and access is not addressed in this guide).
+So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal.
 
 Install a USB camera and configure [Motion](https://motion-project.github.io/) to monitor and detect physical access.
 
