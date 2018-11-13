@@ -75,7 +75,7 @@ Insert a USB disk. Run `dmesg` to identify it.
 
 Download the latest [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image and copy it to the USB disk:
 
-    $ sudo dd if=debian-9.5.0-amd64-netinst.iso of=/dev/sdd bs=1M
+    $ sudo dd if=debian-9.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
 
 ### Manual way
 
@@ -156,9 +156,13 @@ Download the latest OpenBSD installer, [`amd64/install64.fs`](https://cloudflare
 
 # Connect over serial
 
-On another computer, start [screen](https://www.gnu.org/software/screen/manual/screen.html). The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit):
+To connect from another computer running Linux, start [screen](https://www.gnu.org/software/screen/manual/screen.html). The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit):
 
     $ screen /dev/ttyUSB0 115200 8N1
+
+Or from OpenBSD, use [cu](https://man.openbsd.org/cu):
+
+    $ doas cu -r -s 115200 -l cuaU0
 
 Power up the APU board, DC jack first. Make note of the BIOS version displayed briefly before POST.
 
@@ -594,7 +598,7 @@ exit 0
 Download and edit [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/):
 
     $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
-
+    $ doas mkdir /etc/pf
     $ doas curl -Lfvo /etc/pf/blacklist https://raw.githubusercontent.com/drduh/config/master/pf/blacklist
     $ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
     $ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
@@ -645,17 +649,28 @@ To confirm the firewall is configured correctly, run a port scan from an externa
 
     $ nmap -v -A -T4 1.2.3.4 -Pn
 
-Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) or [OpenBSD errata](https://www.openbsd.org/errata.html).
+So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal (physical access and access is not addressed in this guide).
 
-Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades). OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
+Install a USB camera and configure [Motion](https://motion-project.github.io/) to monitor and detect physical access.
 
-So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal (physical access and access is not addressed in this guide). Nevertheless, it's good practice to occassionally check running processes (`ps -A`), open network connections (Debian: `sudo lsof -Pni`, OpenBSD: `doas netstat -an -p tcp -p udp` or `doas fstat|grep net`) and last access (`w` and `last`), as well as any suspicious files in `/tmp` and elsewhere.
+## Debian
+
+Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent).
+
+Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
+
+## OpenBSD
+
+Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html).
+
+OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
 
 # Similar work
 
 * [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2)
 * [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router)
 * [vedetta-com/vedetta](https://github.com/vedetta-com/vedetta)
+* [northox/openbsd-apu2](https://github.com/northox/openbsd-apu2)
 
