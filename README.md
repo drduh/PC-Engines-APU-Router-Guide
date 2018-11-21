@@ -168,7 +168,7 @@ Power up the APU board, DC jack first. Make note of the BIOS version displayed b
 
 # Updating BIOS
 
-If the version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the latest firmware:
+If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
 
 ```shell
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
@@ -235,7 +235,7 @@ Loading Linux 4.9.0-6-amd64 ...
 Loading initial ramdisk ...
 ```
 
-If this is the case, press `e` at the kernel selection screen in GRUB, scroll down and replace the word `quiet` with:
+If this is the case, reboot and press `e` at the kernel selection screen in GRUB to enter edit mode, scroll down and replace the word `quiet` with:
 
     nomodeset console=ttyS0,115200n8
     
@@ -268,10 +268,10 @@ Login as `root`, install and update any software that may be needed:
 # apt-get -y upgrade
 # apt-get -y install \
     sudo ssh tmux lsof vim zsh tcpdump \
-    dnsmasq privoxy hostapd nmap \
+    dnsmasq privoxy hostapd \
     iptables iptables-persistent curl dnsutils ntp net-tools \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
-    man-db xclip screen minicom jmtpfs file feh scrot htop lshw less
+    man-db jmtpfs file htop lshw less
 ```
 
 Update GRUB to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
@@ -300,7 +300,7 @@ Login as `root`, install any pending updates with [`syspatch`](https://man.openb
 
 Install any needed software:
 
-    # pkg_add -Vv vim zsh nmap curl pftop vnstat
+    # pkg_add -Vv vim zsh curl pftop vnstat
 
 Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf). For a similar password-less setup to the section above, use:
 
@@ -570,9 +570,9 @@ Enable permanently:
 
 Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall. If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
 
-Download and edit [drduh/config/iptables.sh](https://github.com/drduh/config/blob/master/iptables.sh):
+Download and edit [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh):
 
-    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/iptables.sh
+    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/scripts/iptables.sh
 
 Use `chmod +x iptables.sh` to make the script executable and apply with `sudo ./iptables.sh`.
 
@@ -608,6 +608,16 @@ Turn pf off and back on again:
     $ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
     pf disabled
     pf enabled 
+
+See also [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) for additional addresses to block.
+
+To check the number of entries loaded in the blacklist:
+
+    $ doas pfctl -t blacklist -T show | wc -l
+
+To inspect blocked traffic:
+
+    $ doas tcpdump -ni pflog0
 
 See also [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html).
 
@@ -655,13 +665,21 @@ Install a USB camera and configure [Motion](https://motion-project.github.io/) t
 
 ## Debian
 
+Check open ports and listening programs with `sudo lsof -Pni` or `sudo netstat -npl`.
+
+Check running processes and logged-in users with `ps -eax` and `last -F`.
+
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent).
 
-Run `apt-get update && apt-get upgrade` periodically, or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+Run `sudo apt-get update && sudo apt-get upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization)
 
 ## OpenBSD
+
+Check open ports and listening programs with `doas fstat | grep net` or `doas netstat -a -n -p udp -p tcp`.
+
+Check running processes and logged-in users with `ps -A` and `last`.
 
 Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html).
 
@@ -671,6 +689,6 @@ OpenBSD releases occur approximately every six months - [follow current snapshot
 
 * [elad/openbsd-apu2](https://github.com/elad/openbsd-apu2)
 * [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router)
-* [vedetta-com/vedetta](https://github.com/vedetta-com/vedetta)
 * [northox/openbsd-apu2](https://github.com/northox/openbsd-apu2)
+* [vedetta-com/vedetta](https://github.com/vedetta-com/vedetta)
 
