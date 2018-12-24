@@ -1,6 +1,6 @@
-This is a guide to building a router using the PC Engines [APU platform](http://www.pcengines.ch/apu.htm) and an operating system like [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) or [OpenBSD](https://www.openbsd.org/) for [network address translation](http://computer.howstuffworks.com/nat.htm), stateful firewalling, Web traffic filtering, and much more.
+This is a guide to building a router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) or [OpenBSD](https://www.openbsd.org/), to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), stateful firewalling, Web traffic filtering, and much more.
 
-I am **not** responsible for anything you do nor break by following any of these steps.
+I am **not** responsible for anything you do by following any part of this guide!
 
 See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Privacy-Server-Guide).
 
@@ -12,7 +12,7 @@ The completed router configuration will enable:
 * A local wireless interface for trusted devices - `192.168.1.0/24`
 * A local Ethernet interface for low-trust devices - `10.8.1.0/24`
 * A local Ethernet interface for trusted devices - `172.16.1.0/24`
-* An additonal (4th) Ethernet interface is available on APU4+
+* An additional (4th) Ethernet interface is available on APU4+
 
 The following software will enable the router and enchance security and privacy:
 
@@ -32,21 +32,21 @@ Order hardware online from [PC Engines](https://www.pcengines.ch/order.htm) dire
 
 Here is a suggested parts list:
 
-| Quantity | Part | Description | Cost
-|----------|------|-------------|------
-| 1 | apu2c4 | APU.2C4 system board 4GB | $132.00
-| 1 | case1d2bluu | Enclosure 3 LAN, blue | $10.00
-| 1 | ac12vus2 | AC adapter 12V 2A US plug | $4.40
-| 1 | msata16g | SSD M-Sata 16GB MLC, Phison S11 | $17.80
-| 1 | wle200nx | Compex WLE200NX miniPCI express card | $19.00
-| 2 | pigsma | Cable I-PEX -> reverse SMA | $3.00
-| 2 | antsmadb | Antenna reverse SMA dual band | $4.10
+| Part | Description | Cost
+|------|-------------|------
+| apu2c4 | APU.2C4 system board 4GB | $132.00
+| case1d2bluu | Enclosure 3 LAN, blue | $10.00
+| ac12vus2 | AC adapter 12V 2A US plug | $4.40
+| msata16g | SSD M-Sata 16GB MLC, Phison S11 | $17.80
+| wle200nx | Compex WLE200NX miniPCI express card | $19.00
+| pigsma x 2 | Cable I-PEX -> reverse SMA (2) | $3.00
+| antsmadb x 2 | Antenna reverse SMA dual band (2) | $4.10
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH).
 
 # Assemble hardware
 
-Read over the APU2 series [board reference](http://www.pcengines.ch/pdf/apu2.pdf) document before starting.
+Read over the APU2 series [board reference](https://www.pcengines.ch/pdf/apu2.pdf) document before starting.
 
 Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
 
@@ -93,7 +93,7 @@ Install the package `dosfstools` to create the proper filesystem:
 
     $ sudo mkfs.fat -F 16 -I /dev/sdd1
 
-Install the [SYSLINUX bootloader](http://www.syslinux.org/wiki/index.php?title=Install):
+Install the [SYSLINUX bootloader](https://www.syslinux.org/wiki/index.php?title=Install):
 
     $ sudo syslinux /dev/sdd1
 
@@ -111,7 +111,7 @@ Download netboot installer files:
 
     $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
-**Optional** Install non-free firmware (only required by APU1D (uses Realtek RTL8111E), not APU2C):
+**Optional** Install non-free firmware (only required by APU1D - uses Realtek RTL8111E):
 
     $ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
 
@@ -142,15 +142,13 @@ The directory contents should contain:
 
 Unmount the drive:
 
-    $ cd
-
     $ sudo umount /mnt/usb
 
 Unplug the USB disk and plug it into the APU.
 
 ## OpenBSD
 
-Download the latest OpenBSD installer, [`amd64/install64.fs`](https://cloudflare.cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) and copy the file to the USB device:
+Download the latest OpenBSD installer, [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) and copy the file to the USB device:
 
     $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
@@ -160,7 +158,7 @@ To connect from another computer running Linux, start [screen](https://www.gnu.o
 
     $ screen /dev/ttyUSB0 115200 8N1
 
-Or from OpenBSD, use [cu](https://man.openbsd.org/cu):
+On OpenBSD, use [cu](https://man.openbsd.org/cu):
 
     $ doas cu -r -s 115200 -l cuaU0
 
@@ -168,7 +166,7 @@ Power up the APU board, DC jack first. Make note of the BIOS version displayed b
 
 # Updating BIOS
 
-If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](http://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
+If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
 
 ```shell
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
@@ -178,7 +176,9 @@ $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp apu4_v4.8.0.2.rom /mnt/usb
+$ tar zxvf apu4_v4.8.0.7.rom.tar.gz
+
+$ sudo cp -v apu4_v4.8.0.7.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -188,7 +188,7 @@ Unplug the USB disk and connect it to the APU, then boot to it using `F10`.
 Flash the BIOS:
 
 ```shell
-root@box:~# flashrom -p internal -w /media/SYSLINUX/apu4_v4.8.0.2.rom
+root@box:~# flashrom -p internal -w /media/SYSLINUX/apu4_v4.8.0.7.rom
 ```
 
 ![Using flashrom](https://user-images.githubusercontent.com/12475110/43032327-eba5b3ea-8c68-11e8-8ded-8d1d0eb32720.png)
@@ -202,7 +202,7 @@ Press `F10` and select USB boot.
 
 ## Debian
 
-Proceed through Debian installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
+Proceed through the graphical installer, choosing the **internal hard drive** as the disk to partition. Also be sure to select it as the target for the boot loader installation.
 
 ## OpenBSD
 
@@ -216,7 +216,7 @@ switching console to com>> OpenBSD/amd64 BOOT 3.34
 boot> [Press Enter]
 ```
 
-When presented with a list of network interfaces, `em0` is the one closest to the serial port:
+When presented with a list of network interfaces, `em0` is the Ethernet port closest to the serial port:
 
     Available network interfaces are: em0 em1 em2 em3 vlan0.
 
@@ -311,7 +311,7 @@ permit nopass keepenv root
 
 # Configure network interfaces
 
-At this point, either an Ethernet or wireless network interface (or both) can be set up to continue the rest of the guide over SSH instead of the serial terminal.
+At this point, either an Ethernet or wireless network interface (or both) can be set up to continue the rest of the setup over SSH instead of the serial terminal.
 
 ## Debian
 
@@ -393,6 +393,10 @@ Make it permanent:
 
 Configure a client to connect using the section above or set up DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html).
 
+**Optional** Randomize interface MAC address(es) on reboot:
+
+    $ echo "lladdr random" | doas tee -a /etc/hostname.em{0..3}
+
 # Configure SSH
 
 An SSH connection to the router should now be able to be established, but not yet authorized:
@@ -471,11 +475,13 @@ To copy files:
 $ scp .tmux.conf .vimrc .zshrc pcengines:~
 ```
 
-See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to better protect the SSH key and make it portable.
+See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to secure SSH keys.
 
 # DHCP and DNS
 
-[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS. See [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for recommended options. Edit `/etc/dnsmasq.conf` to include at least the following:
+[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
+
+Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) or edit `/etc/dnsmasq.conf` to include at least the following options:
 
 ```
 dhcp-lease-max=15
@@ -515,7 +521,6 @@ Enable on boot:
 
     $ doas rcctl enable dnsmasq
     
-
 # Wireless Access Point
 
 ## Debian
@@ -542,7 +547,7 @@ Restart the service:
 
     $ sudo service hostapd restart
 
-You may need to manually assign the interface an address manually:
+You may need to manually assign the interface an address:
 
     $ sudo ifconfig wlan0 192.168.1.1
 
@@ -568,7 +573,7 @@ Enable permanently:
 
 ## Debian
 
-Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall. If you've never used IPTables before, start with the following shell script and edit it to suit your needs.
+Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall.
 
 Download and edit [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh):
 
@@ -576,50 +581,31 @@ Download and edit [drduh/config/scripts/iptables.sh](https://github.com/drduh/co
 
 Use `chmod +x iptables.sh` to make the script executable and apply with `sudo ./iptables.sh`.
 
-The APU router should now be able to route packets. Confirm by sending an outbound ping from another computer connected to the router.
-
-To make the firewall rules permanent:
+Make the firewall rules apply on reboot:
 
     $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 
-Either install or `dpkg-reconfigure` the `iptables-persistent` package, or manually restore the rules on boot, for example by editing `/etc/rc.local`:
-
-```
-#!/bin/sh -e
-
-# restore firewall rules
-sudo /sbin/iptables-restore < /etc/iptables/rules.v4
-
-exit 0
-```
-
 ## OpenBSD
 
-Download and edit [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/):
+See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/) files:
 
-    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
     $ doas mkdir /etc/pf
-    $ doas curl -Lfvo /etc/pf/blacklist https://raw.githubusercontent.com/drduh/config/master/pf/blacklist
+    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
+    $ doas curl -Lfvo /etc/pf/blocklist https://raw.githubusercontent.com/drduh/config/master/pf/blocklist
     $ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
     $ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
 
-Turn pf off and back on again:
+Turn PF off and back on again:
 
     $ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
     pf disabled
     pf enabled 
 
-See also [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) for additional addresses to block.
-
-To check the number of entries loaded in the blacklist:
-
-    $ doas pfctl -t blacklist -T show | wc -l
+**Optional** Use [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) to find and block unwanted networks.
 
 To inspect blocked traffic:
 
     $ doas tcpdump -ni pflog0
-
-See also [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html).
 
 # Web filtering
 
@@ -655,13 +641,15 @@ $ sudo service privoxy restart
 
 # Security and maintenance
 
-To confirm the firewall is configured correctly, run a port scan from an external host or over the Tor network using [haad/proxychains](https://github.com/haad/proxychains):
+To confirm the firewall is configured correctly, run a port scan from an external host:
 
     $ nmap -v -A -T4 1.2.3.4 -Pn
 
-So long as no services are exposed to the Internet interface, the risk of *remote* compromise is minimal.
+So long as no services are exposed to the Internet, the risk of *remote* compromise is minimal.
 
 Install a USB camera and configure [Motion](https://motion-project.github.io/) to monitor and detect physical access.
+
+It may also be possible to increase system entropy with an external source like [OneRNG](http://onerng.info/).
 
 ## Debian
 
