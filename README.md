@@ -183,18 +183,75 @@ $ sudo cp -v apu4_v4.8.0.7.rom /mnt/usb
 $ sudo umount /mnt/usb
 ```
 
-Unplug the USB disk and connect it to the APU, then boot to it using `F10`.
+Connect the USB disk to the APU and select `F10` at boot:
 
-Flash the BIOS:
+```
+SeaBIOS (version rel-1.11.0.7-0-gdc51f90)
 
-```shell
-root@box:~# flashrom -p internal -w /media/SYSLINUX/apu4_v4.8.0.7.rom
+Press F10 key now for boot menu
+
+Select boot device:
+
+1. USB MSC Drive Samsung Flash Drive DUO 1100
+2. AHCI/0: SATA SSD ATA-10 Hard-Disk (15272 MiBytes)
+3. Payload [setup]
+4. Payload [memtest]
 ```
 
-![Using flashrom](https://user-images.githubusercontent.com/12475110/43032327-eba5b3ea-8c68-11e8-8ded-8d1d0eb32720.png)
-*Specifying "boardmismatch" was necessary with a newer APU4 model*
+Confirm the board and BIOS versions:
 
-Verify the correct BIOS version right after rebooting.
+```shell
+root@pcengines:~# dmesg | grep apu
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
+```
+
+Save existing flash memory and install new BIOS:
+
+```shell
+root@pcengines:~# cd /media/SYSLINUX
+
+root@pcengiens:~# flashrom -p internal -r apu4.rom.$(date +%F)
+
+root@pcengines:~# flashrom -p internal -w apu4_v4.8.0.7.rom
+flashrom v0.9.8-r1888 on Linux 3.16.6-tinycore (i686)
+flashrom is free software, get the source code at http://www.flashrom.org
+
+Calibrating delay loop... OK.
+coreboot table found at 0xcfed1000.
+Found chipset "AMD FCH".
+Enabling flash write... OK.
+Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
+Reading old flash chip contents... done.
+Erasing and writing flash chip... Erase/write done.
+Verifying flash... VERIFIED.
+
+root@pcengines:~# reboot now
+```
+
+Verify the BIOS version by checking serial output during boot, or from the operating system:
+
+```
+PC Engines apu4
+coreboot build 20180312
+BIOS version v4.8.0.7
+```
+
+Debian:
+
+```shell
+$ sudo dmesg | grep apu
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
+```
+
+OpenBSD:
+
+```shell
+$ dmesg | grep bios
+bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfe9a020 (7 entries)
+bios0: vendor coreboot version "v4.8.0.7" date 12/03/2018
+bios0: PC Engines apu4
+acpi0 at bios0: rev 2
+```
 
 # Installing the OS
 
