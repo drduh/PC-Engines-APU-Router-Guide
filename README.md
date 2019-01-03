@@ -158,6 +158,10 @@ To connect from another computer running Linux, start [screen](https://www.gnu.o
 
     $ screen /dev/ttyUSB0 115200 8N1
 
+Or using minicom:
+
+    $ sudo minicom -D /dev/ttyUSB0
+
 On OpenBSD, use [cu](https://man.openbsd.org/cu):
 
     $ doas cu -r -s 115200 -l cuaU0
@@ -166,7 +170,11 @@ Power up the APU board, DC jack first. Make note of the BIOS version displayed b
 
 # Updating BIOS
 
-If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release. Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
+If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release.
+
+**Note** Check the release notes as newer BIOS versions may be incompatible with miniPCI cards!
+
+Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
 
 ```shell
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
@@ -225,7 +233,7 @@ Reading old flash chip contents... done.
 Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
 
-root@pcengines:~# reboot now
+root@pcengines:~# reboot
 ```
 
 Verify the BIOS version by checking serial output during boot, or from the operating system:
