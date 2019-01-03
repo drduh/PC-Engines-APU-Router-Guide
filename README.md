@@ -359,9 +359,13 @@ Type `:x` to save and quit.
 
 ## OpenBSD
 
-Login as `root`, install any pending updates with [`syspatch`](https://man.openbsd.org/syspatch).
+Login as `root` and install any [pending updates](https://man.openbsd.org/syspatch):
 
     # syspatch
+
+As well as any pending [firmware updates](https://man.openbsd.org/fw_update):
+
+    # fw_update
 
 Install any needed software:
 
@@ -632,7 +636,7 @@ Enable permanently:
 
 ## OpenBSD
 
-    $ echo 'net.inet.ip.forwarding=1' | doas tee -a /etc/sysctl.conf
+    $ echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
 
 # Configure firewall
 
@@ -692,8 +696,8 @@ Edit the default configurations, or download and edit:
 ```
 $ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
 $ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
-$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy | sudo tee /etc/privoxy/config
-$ curl https://raw.githubusercontent.com/drduh/config/master/user.action | sudo tee /etc/privoxy/user.action
+$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/config | sudo tee /etc/privoxy/config
+$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/user.action | sudo tee /etc/privoxy/user.action
 ```
 
 Restart both services and check to make sure they work:
@@ -734,7 +738,7 @@ Check open ports and listening programs with `doas fstat | grep net` or `doas ne
 
 Check running processes and logged-in users with `ps -A` and `last`.
 
-Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html).
+Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
 
 OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
 
