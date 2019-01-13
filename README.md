@@ -28,7 +28,7 @@ This guide should work on any APU2 model. Here is a suggested parts list:
 |------|-------------|------
 | [apu4c4](https://pcengines.ch/apu4c4.htm) | apu4c4 system board | $138.00
 | [case1d2bluu](https://pcengines.ch/case1d2bluu.htm) | Enclosure 3 LAN, blue | $10.00
-| [ac12vus2](https://www.pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.40
+| [ac12vus2](https://pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.40
 | [msata16g](https://pcengines.ch/msata16g.htm) | SSD M-Sata 16GB MLC, Phison S11 | $15.50
 | [wle200nx](https://pcengines.ch/wle200nx.htm) | Compex WLE200NX miniPCI express card | $19.00
 | 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $3.00
@@ -115,7 +115,7 @@ Download netboot installer files:
 
 Verify file integrity:
 
-```
+```console
 $ shasum -a 256 linux initrd.gz firmware.zip
 bea409469a665a930954c7ee1bbaa77964357988163d83a50ff741d1bbba0811  linux
 362be3860fc427b3fe81071741d56863b37a8fc05e3126142559782a9b9d0749  initrd.gz
@@ -135,12 +135,16 @@ append vga=off initrd=initrd.gz console=ttyS0,115200n8 fb=false
 
 The directory contents should contain:
 
-    $ ls /mnt/usb
-    firmware.zip  initrd.gz  ldlinux.c32  ldlinux.sys  linux  syslinux.cfg
+```console
+$ ls /mnt/usb
+firmware.zip  initrd.gz  ldlinux.c32  ldlinux.sys  linux  syslinux.cfg
+```
 
 Unmount the USB drive:
 
-    $ sudo umount /mnt/usb
+```console
+$ sudo umount /mnt/usb
+```
 
 Unplug the USB disk and plug it into the APU.
 
@@ -150,15 +154,21 @@ The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit).
 
 To connect from OpenBSD, use [cu](https://man.openbsd.org/cu):
 
-    $ doas cu -r -s 115200 -l cuaU0
+```console
+$ doas cu -r -s 115200 -l cuaU0
+```
 
 To connect from Linux, use [screen](https://www.gnu.org/software/screen/manual/screen.html):
 
-    $ screen /dev/ttyUSB0 115200 8N1
+```console
+$ screen /dev/ttyUSB0 115200 8N1
+```
 
 Or use minicom:
 
-    $ sudo minicom -D /dev/ttyUSB0
+```console
+$ sudo minicom -D /dev/ttyUSB0
+```
 
 Power up the APU board, DC jack first. Make note of the BIOS version displayed briefly before POST.
 
@@ -191,7 +201,7 @@ $ sudo umount /mnt/usb
 
 Connect the USB disk to the APU, press `F10` at boot and select the USB drive:
 
-```
+```console
 SeaBIOS (version rel-1.11.0.7-0-gdc51f90)
 
 Press F10 key now for boot menu
@@ -399,8 +409,10 @@ Use the graphical installer and select the **internal drive** as the disk to par
 
 The following parameters have been appended to `/etc/boot.conf` by the installer and everything should just work:
 
-    stty com0 115200
-    set tty com0
+```
+stty com0 115200
+set tty com0
+```
 
 ## Debian
 
@@ -432,11 +444,15 @@ Press `Control-X` to continue booting. You should see verbose boot messages appe
 
 Log in as `root` and install any [pending updates](https://man.openbsd.org/syspatch) (unless already following -current):
 
-    # syspatch -v
+```console
+$ syspatch -v
+```
 
 Install any pending [firmware updates](https://man.openbsd.org/fw_update):
 
-    # fw_update
+```console
+$ fw_update
+```
 
 Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf) without a password:
 
@@ -447,7 +463,9 @@ permit nopass keepenv root
 
 Install any needed software:
 
-    # pkg_add -Vv vim zsh curl pftop vnstat
+```console
+$ pkg_add vim zsh curl pftop vnstat
+```
 
 Log out as root when finished.
 
@@ -456,9 +474,8 @@ Log out as root when finished.
 Log in as `root` to install pending updates and needed software:
 
 ```console
-# apt-get update
-# apt-get -y upgrade
-# apt-get -y install \
+$ apt-get update && apt-get -y upgrade
+$ apt-get -y install \
     sudo ssh tmux lsof vim zsh tcpdump \
     dnsmasq privoxy hostapd \
     iptables iptables-persistent curl dnsutils ntp net-tools \
@@ -476,11 +493,11 @@ Add:
 
     sysadm     ALL=(ALL) NOPASSWD:ALL
     
-Where `sysadm` is your primary user id.
+Where `sysadm` is the primary user.
 
 Type `:x` to save and quit.
 
-**Optional** Change the default login shell to `zsh`:
+**Optional** Change the default login shell to Zsh:
 
     # chsh -s /usr/bin/zsh sysadm
 
@@ -539,7 +556,7 @@ gateway 10.8.1.1
 
 Then restart networking and bring up the interface:
 
-```
+```console
 $ sudo service networking restart
 $ sudo ifup enp2s0
 ```
@@ -556,14 +573,14 @@ gateway 10.8.1.1
 
 Then also restart networking and bring up the interface:
 
-```
+```console
 $ sudo service networking restart
 $ sudo ifup eno1
 ```
 
 It should now be possible to ping the router:
 
-```
+```console
 $ ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1) 56(84) bytes of data.
 64 bytes from 10.8.1.1: icmp_seq=1 ttl=64 time=0.693 ms
@@ -583,7 +600,7 @@ hostapd /etc/hostapd.conf
 
 An SSH connection to the router should now be able to be established, but not yet authorized:
 
-```
+```console
 $ ssh sysadm@10.8.1.1
 The authenticity of host '10.8.1.1 (10.8.1.1)' can't be established.
 ECDSA key fingerprint is SHA256:AAAAA.
@@ -594,7 +611,7 @@ Permission denied (publickey,password).
 
 Generate an SSH keypair on a computer that will be used to login to the router:
 
-```
+```console
 $ ssh-keygen -f ~/.ssh/pcengines -C 'sysadm'
 Generating public/private rsa key pair.
 Enter passphrase (empty for no passphrase):
@@ -605,13 +622,13 @@ Your public key has been saved in .ssh/pcengines.pub.
 
 Copy the public key to clipboard:
 
-```
+```console
 $ cat ~/.ssh/pcengines.pub | xclip
 ```
 
 Over the serial connection, as the configured user (e.g. `sysadm` - *not* `root`) on the router, configure SSH to accept that key:
 
-```
+```console
 $ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
 [Paste the copied public key using the middle mouse button]
 [Press Control-D to save]
@@ -642,7 +659,7 @@ Host pcengines
 
 To connect:
 
-```
+```console
 $ ssh pcengines
 Host key fingerprint is SHA256:AAAAA
 Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
@@ -652,7 +669,7 @@ pcengines%
 
 To copy files:
 
-```
+```console
 $ scp .tmux.conf .vimrc .zshrc pcengines:~
 ```
 
@@ -664,7 +681,7 @@ See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to secure SSH 
 
 Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) or edit `/etc/dnsmasq.conf` to include at least the following options:
 
-```shell
+```
 dhcp-lease-max=15
 dhcp-option=option:router,192.168.1.1
 dhcp-range=192.168.1.2,192.168.1.15,24h
@@ -705,11 +722,13 @@ Enable on boot:
 
 ## OpenBSD
 
+**Note** Wireless performance is significantly worse on OpenBSD than Debian.
+
 Edit `/etc/hostname.athn0` to include:
 
 ```shell
 inet 192.168.1.1 255.255.255.0
-media autoselect mode 11g mediaopt hostap chan 11
+media autoselect mode 11n mediaopt hostap chan 11
 nwid NAME wpakey PASSWORD
 ```
 
@@ -778,17 +797,21 @@ $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
 See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/) files:
 
-    $ doas mkdir /etc/pf
-    $ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
-    $ doas curl -Lfvo /etc/pf/blocklist https://raw.githubusercontent.com/drduh/config/master/pf/blocklist
-    $ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
-    $ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
+```console
+$ doas mkdir /etc/pf
+$ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
+$ doas curl -Lfvo /etc/pf/blocklist https://raw.githubusercontent.com/drduh/config/master/pf/blocklist
+$ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
+$ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
+```
 
 Turn PF off and back on again:
 
-    $ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
-    pf disabled
-    pf enabled 
+```console
+$ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
+pf disabled
+pf enabled 
+```
 
 **Optional** Use [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) to find and block unwanted networks.
 
@@ -824,23 +847,24 @@ Install required software:
 
     $ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
 
-Edit the default configurations, or download and edit:
+Download my Privoxy configuration and optionally my Lighttpd configuration:
 
-* [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf)
-* [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau)
 * [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy)
 * [drduh/config/user.action](https://github.com/drduh/config/blob/master/user.action)
+* [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf)
+* [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau)
 
-```
-$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
-$ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
+```console
 $ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/config | sudo tee /etc/privoxy/config
 $ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/user.action | sudo tee /etc/privoxy/user.action
+
+$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
+$ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
 ```
 
 Restart both services and check to make sure they work:
 
-```
+```console
 $ sudo service lighttpd restart
 
 $ sudo service privoxy restart
