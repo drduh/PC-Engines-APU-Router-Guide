@@ -22,23 +22,23 @@ The completed router configuration will enable:
 
 Order hardware online from [PC Engines](https://www.pcengines.ch/order.htm) directly, or through a reseller.
 
-Here is a suggested parts list:
+This guide should work on any APU2 model. Here is a suggested parts list:
 
 | Part | Description | Cost
 |------|-------------|------
-| apu2c4 | APU.2C4 system board 4GB | $132.00
-| case1d2bluu | Enclosure 3 LAN, blue | $10.00
-| ac12vus2 | AC adapter 12V 2A US plug | $4.40
-| msata16g | SSD M-Sata 16GB MLC, Phison S11 | $17.80
-| wle200nx | Compex WLE200NX miniPCI express card | $19.00
-| pigsma x 2 | Cable I-PEX -> reverse SMA (2) | $3.00
-| antsmadb x 2 | Antenna reverse SMA dual band (2) | $4.10
+| [apu4c4](https://pcengines.ch/apu4c4.htm) | apu4c4 system board | $138.00
+| [case1d2bluu](https://pcengines.ch/case1d2bluu.htm) | Enclosure 3 LAN, blue | $10.00
+| [ac12vus2](https://www.pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.40
+| [msata16g](https://pcengines.ch/msata16g.htm) | SSD M-Sata 16GB MLC, Phison S11 | $15.50
+| [wle200nx](https://pcengines.ch/wle200nx.htm) | Compex WLE200NX miniPCI express card | $19.00
+| 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $3.00
+| 2 x [antsmadb](https://pcengines.ch/antsmadb.htm) | Antenna reverse SMA dual band | $4.10
 
-To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH).
+To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
 ## Assembly
 
-Read over the APU2 series [board reference](https://www.pcengines.ch/pdf/apu2.pdf) document before starting.
+Read over the APU series [board reference](https://www.pcengines.ch/pdf/apu2.pdf) document before starting.
 
 Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
 
@@ -172,7 +172,7 @@ If the BIOS version is [out of date](https://pcengines.github.io/), download and
 
 Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
 
-```shell
+```console
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 511+0 records in
 511+0 records out
@@ -208,14 +208,14 @@ Select boot device:
 
 Confirm the board and BIOS versions:
 
-```shell
+```console
 root@pcengines:~# dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
 ```
 
 Save existing flash memory and install new BIOS:
 
-```shell
+```console
 root@pcengines:~# cd /media/SYSLINUX
 
 root@pcengiens:~# flashrom -p internal -r apu4.rom.$(date +%F)
@@ -248,7 +248,7 @@ BIOS version v4.8.0.7
 
 OpenBSD:
 
-```shell
+```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfe9a020 (7 entries)
 bios0: vendor coreboot version "v4.8.0.7" date 12/03/2018
@@ -258,20 +258,20 @@ acpi0 at bios0: rev 2
 
 Debian:
 
-```shell
+```console
 $ sudo dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
 ```
 
 # Installing the OS
 
-Press `F10` and select the USB drive.
+Press `F10` at boot and select the USB drive.
 
 ## OpenBSD
 
 First set the serial console parameters:
 
-```shell
+```console
 Booting from Hard Disk...
 Using drive 0, partition 3.
 Loading......
@@ -286,7 +286,7 @@ boot> [Enter]
 
 Select the Install option:
 
-```shell
+```console
 Welcome to the OpenBSD/amd64 6.4 installation program.
 (I)nstall, (U)pgrade, (A)utoinstall or (S)hell? I
 ```
@@ -299,7 +299,7 @@ When presented with a list of network interfaces, `em0` or `re0` is the Ethernet
 
 Use DHCP or configure a static route:
 
-```shell
+```console
 Which network interface do you wish to configure? (or 'done') [re0]
 IPv4 address for re0? (or 'dhcp' or 'none') [dhcp] 192.168.1.2
 Netmask for re0? [255.255.255.0]
@@ -314,7 +314,7 @@ DNS nameservers? (IP address list or 'none') [none] 192.168.1.1
 
 Configure the root password and set up a user account:
 
-```shell
+```console
 Password for root account? (will not echo)
 Password for root account? (again)
 Start sshd(8) by default? [yes]
@@ -331,7 +331,7 @@ Allow root ssh login? (yes, no, prohibit-password) [no]
 
 Select the internal mSATA disk and configure the partions:
 
-```shell
+```console
 Available disks are: sd0 sd1 sd2.
 Which disk is the root disk? ('?' for details) [sd0] ?
 sd0: ATA, SB2, SBFM naa.0000000000000000 (111.8G)
@@ -361,7 +361,7 @@ The auto-allocated layout for sd0 is:
 
 Select "Auto layout" to continue:
 
-```shell
+```console
 Use (A)uto layout, (E)dit auto layout, or create (C)ustom layout? [a] A
 /dev/rsd0a: 1024.0MB in 2097152 sectors of 512 bytes
 6 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
@@ -386,6 +386,8 @@ Which disk do you wish to initialize? (or 'done') [done]
 ```
 
 Select a mirror and complete the setup. Unplug the USB drive and reboot.
+
+See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
 
 ## Debian
 
@@ -453,7 +455,7 @@ Log out as root when finished.
 
 Log in as `root` to install pending updates and needed software:
 
-```shell
+```console
 # apt-get update
 # apt-get -y upgrade
 # apt-get -y install \
@@ -490,14 +492,14 @@ Now an Ethernet or wireless network interface (or both) can be set up to continu
 
 On the APU, set a local network interface address and make it permanent:
 
-```shell
+```console
 $ doas ifconfig em1 10.8.1.1 255.255.255.0
 $ echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
 ```
 
 Configure the client with DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html) or using a static address:
 
-```shell
+```console
 $ doas ifconfig em1 10.8.1.2 255.255.255.0
 $ ping 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
@@ -513,7 +515,7 @@ PING 10.8.1.1 (10.8.1.1): 56 data bytes
 
 From the APU and another Linux computer, determine the interface names available:
 
-```shell
+```console
 root@pcengines# lshw -C network | grep "logical name"
        logical name: enp1s0
        logical name: enp2s0
@@ -682,7 +684,7 @@ bogus-priv
 
 Install dnsmasq, start the service and enable it on boot:
 
-```shell
+```console
 $ doas pkg_add dnsmasq
 $ doas rcctl start dnsmasq
 dnsmasq(ok)
@@ -713,7 +715,7 @@ nwid NAME wpakey PASSWORD
 
 Restart networking:
 
-```shell
+```console
 $ doas sh /etc/netstart
 ```
 
@@ -753,7 +755,7 @@ In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentatio
 
 Enable now and on boot:
 
-```shell
+```console
 $ doas sysctl net.inet.ip.forwarding=1
 net.inet.ip.forwarding: 0 -> 1
 
@@ -764,7 +766,7 @@ $ echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
 
 Enable now and on boot:
 
-```shell
+```console
 $ sudo sysctl -w net.ipv4.ip_forward=1
 
 $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
@@ -866,9 +868,11 @@ Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply
 
 OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
 
-Mount `/tmp` as `tmpfs` (in memory only) by replacing the tmp partition line in `/etc/fstab` with:
+Mount `/tmp` as `tmpfs` (in memory only) by replacing the tmp partition line in `/etc/fstab` with the following line. Be sure to increase the size >1G for system upgrades!
 
     swap /tmp mfs rw,noexec,nosuid,nodev,-s=256M 0 0
+
+Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.openbsd.org/OpenBSD-current/man8/sensorsd.8).
 
 ## Debian
 
