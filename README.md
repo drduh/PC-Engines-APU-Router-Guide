@@ -65,7 +65,9 @@ Insert a USB disk. Run `dmesg` to identify it.
 
 Download the latest boot and installation image release, [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) and copy the file to the USB device:
 
-    $ sudo dd if=install64.fs of=/dev/sdd bs=1M
+```console
+$ sudo dd if=install64.fs of=/dev/sdd bs=1M
+```
 
 ## Debian
 
@@ -303,9 +305,11 @@ Welcome to the OpenBSD/amd64 6.4 installation program.
 
 When presented with a list of network interfaces, `em0` or `re0` is the Ethernet port closest to the serial port:
 
-    Available network interfaces are: em0 em1 em2 em3 vlan0.
+```console
+Available network interfaces are: em0 em1 em2 em3 vlan0.
 
-    Available network interfaces are: re0 re1 re2 athn0 vlan0.
+Available network interfaces are: re0 re1 re2 athn0 vlan0.
+```
 
 Use DHCP or configure a static route:
 
@@ -353,7 +357,7 @@ No valid MBR or GPT.
 Use (W)hole disk MBR, whole disk (G)PT or (E)dit? [whole] W
 Setting OpenBSD MBR partition to whole sd0...done.
 The auto-allocated layout for sd0 is:
-#                size           offset  fstype [fsize bsize   cpg]
+                 size           offset  fstype [fsize bsize   cpg]
   a:             1.0G               64  4.2BSD   2048 16384     1 # /
   b:             4.2G          2097216    swap
   c:           111.8G                0  unused
@@ -636,7 +640,7 @@ $ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
 
 The SSH connection should now be accepted by specifying the private key:
 
-```
+```console
 $ ssh sysadm@10.8.1.1 -i ~/.ssh/pcengines
 Host key fingerprint is SHA256:AAAAA
 
@@ -707,7 +711,7 @@ $ doas rcctl start dnsmasq
 dnsmasq(ok)
 $ doas rcctl enable dnsmasq
 ```
-    
+
 ## Debian
 
 Restart the service:
@@ -742,11 +746,15 @@ $ doas sh /etc/netstart
 
 Install the default hostapd configuration:
 
-    $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
+```console
+$ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
+```
 
 Or download and use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
 
-    $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
+```console
+$ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
+```
 
 At a minimum, it should include:
 
@@ -817,7 +825,9 @@ pf enabled
 
 To inspect blocked traffic:
 
-    $ doas tcpdump -qni pflog0
+```console
+$ doas tcpdump -qni pflog0
+```
 
 ## Debian
 
@@ -825,13 +835,17 @@ Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 
 Download and edit [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh):
 
-    $ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/scripts/iptables.sh
+```console
+$ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/scripts/iptables.sh
+```
 
 Use `chmod +x iptables.sh` to make the script executable and apply with `sudo ./iptables.sh`.
 
 Make the firewall rules apply on reboot:
 
-    $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
+```console
+$ sudo iptables-save | sudo tee /etc/iptables/rules.v4
+```
 
 # Web filtering
 
@@ -849,32 +863,34 @@ Install required software:
 
 Download my Privoxy configuration and optionally my Lighttpd configuration:
 
-* [drduh/config/privoxy](https://github.com/drduh/config/blob/master/privoxy)
-* [drduh/config/user.action](https://github.com/drduh/config/blob/master/user.action)
-* [drduh/config/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd.conf)
-* [drduh/config/magnet.luau](https://github.com/drduh/config/blob/master/magnet.luau)
+* [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config)
+* [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action)
+* [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf)
+* [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau)
 
 ```console
 $ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/config | sudo tee /etc/privoxy/config
 $ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/user.action | sudo tee /etc/privoxy/user.action
 
-$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
-$ curl https://raw.githubusercontent.com/drduh/config/master/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
+$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
+$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
 ```
 
-Restart both services and check to make sure they work:
+Restart both services and check to make sure they work by tailing their respective log files:
 
 ```console
-$ sudo service lighttpd restart
-
 $ sudo service privoxy restart
+
+$ sudo service lighttpd restart
 ```
 
 # Security and maintenance
 
 To confirm the firewall is configured correctly, run a port scan from an external host:
 
-    $ nmap -v -A -T4 1.2.3.4 -Pn
+```console
+$ nmap -v -A -T4 1.2.3.4 -Pn
+```
 
 So long as no services are exposed to the Internet, the risk of *remote* compromise is minimal.
 
@@ -894,7 +910,9 @@ OpenBSD releases occur approximately every six months - [follow current snapshot
 
 Mount `/tmp` as `tmpfs` (in memory only) by replacing the tmp partition line in `/etc/fstab` with the following line. Be sure to increase the size >1G for system upgrades!
 
-    swap /tmp mfs rw,noexec,nosuid,nodev,-s=256M 0 0
+```
+swap /tmp mfs rw,noexec,nosuid,nodev,-s=256M 0 0
+```
 
 Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.openbsd.org/OpenBSD-current/man8/sensorsd.8).
 
