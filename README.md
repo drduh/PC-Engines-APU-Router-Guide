@@ -9,9 +9,9 @@ See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Pri
 The completed router configuration will enable:
 
 * An egress Ethernet interface for Internet routing - can be connected to WAN or a cable modem
-* A local wireless interface for trusted devices - `192.168.1.0/24`
-* A local Ethernet interface for low-trust devices - `10.8.1.0/24`
-* A local Ethernet interface for trusted devices - `172.16.1.0/24`
+* A local wireless interface - `192.168.1.0/24`
+* A local Ethernet interface - `10.8.1.0/24`
+* A local Ethernet interface - `172.16.1.0/24`
 * An additional (4th) Ethernet interface is available on APU4+
 
 ![network](https://user-images.githubusercontent.com/12475110/41503064-9e505032-717e-11e8-9b01-536abccd764d.png)
@@ -22,7 +22,7 @@ The completed router configuration will enable:
 
 Order hardware online from [PC Engines](https://www.pcengines.ch/order.htm) directly, or through a reseller.
 
-This guide should work on any APU2 model. Here is a suggested parts list:
+This guide should work on any PC Engines APU model. Here is a suggested parts list:
 
 | Part | Description | Cost
 |------|-------------|------
@@ -46,10 +46,10 @@ Attach the mSATA disk and miniPCI wireless adapter.
 
 **Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
 
-> 1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
-> 2. Install the radio card in the miniPCI express socket.
-> 3. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
-> 4. Touch the I-PEX connector of the pigtail to the mounting hole (discharge), then plug onto the radio card (this is where the pre-requisite patience comes in.
+1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
+1. Install the radio card in the miniPCI express socket.
+1. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
+1. Touch the I-PEX connector of the pigtail to the mounting hole (discharge), then plug onto the radio card (this is where the pre-requisite patience comes in.
 
 Power on the board. To avoid arcing, plug in the DC jack first, then plug the adapter into mains.
 
@@ -75,45 +75,61 @@ $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
 Download the latest [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image and copy it to the USB disk:
 
-    $ sudo dd if=debian-9.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
+```console
+$ sudo dd if=debian-9.7.0-amd64-netinst.iso of=/dev/sdd bs=1M
+```
 
 ### Manual way
 
 Erase and partition the USB disk using `cfdisk`, selecting `FAT16 (6)` as the partition type (must be under 4GB in size), and make it bootable:
 
-    $ sudo cfdisk /dev/sdd
+```console
+$ sudo cfdisk /dev/sdd
+```
     
 You can also use a GUI-based software like `gparted` for the same.
 
 Install the master boot record:
 
-    $ sudo install-mbr /dev/sdd
+```console
+$ sudo install-mbr /dev/sdd
+```
     
 Install the package `dosfstools` to create the proper filesystem:
 
-    $ sudo mkfs.fat -F 16 -I /dev/sdd1
+```console
+$ sudo mkfs.fat -F 16 -I /dev/sdd1
+```
 
 Install the [SYSLINUX bootloader](https://www.syslinux.org/wiki/index.php?title=Install):
 
-    $ sudo syslinux /dev/sdd1
+```console
+$ sudo syslinux /dev/sdd1
+```
 
 Mount the new filesystem:
 
-    $ sudo mkdir /mnt/usb
+```console
+$ sudo mkdir /mnt/usb
 
-    $ sudo mount /dev/sdd1 /mnt/usb
+$ sudo mount /dev/sdd1 /mnt/usb
 
-    $ cd /mnt/usb
+$ cd /mnt/usb
+```
 
 Download netboot installer files:
 
-    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
+```console
+$ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
 
-    $ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
+$ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
+```
 
 **Optional** Install non-free firmware (only required by APU1D - uses Realtek RTL8111E):
 
-    $ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
+```console
+$ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
+```
 
 Verify file integrity:
 
@@ -218,14 +234,14 @@ Select boot device:
 
 ## Flash
 
-Confirm the board and BIOS versions:
+Check the current BIOS versions:
 
 ```console
 root@pcengines:~# dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
 ```
 
-Save existing flash memory and install new BIOS:
+Save the existing BIOS image and write the new one, then reboot:
 
 ```console
 root@pcengines:~# cd /media/SYSLINUX
@@ -293,7 +309,7 @@ disk: hd0+ hd1+*
 boot> stty com0 115200
 boot> set tty com0
 switching console to com>> OpenBSD/amd64 BOOT 3.34
-boot> [Enter]
+boot> [Press Enter]
 ```
 
 Select the Install option:
@@ -399,7 +415,7 @@ Available disks are: sd1 sd2.
 Which disk do you wish to initialize? (or 'done') [done]
 ```
 
-Select a mirror and complete the setup. Unplug the USB drive and reboot.
+Select a [mirror](https://www.openbsd.org/ftp.html) and complete the setup, then unplug the USB drive and reboot.
 
 See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
 
@@ -429,7 +445,9 @@ Loading initial ramdisk ...
 
 If this is the case, reboot and press `e` at the kernel selection screen in GRUB to enter edit mode, scroll down and replace the word `quiet` with:
 
-    nomodeset console=ttyS0,115200n8
+```
+nomodeset console=ttyS0,115200n8
+```
     
 **Note** If arrow keys do not work in GRUB, try using emacs key bindings to navigate the text field:
 
@@ -471,7 +489,7 @@ Install any needed software:
 $ pkg_add vim zsh curl pftop vnstat
 ```
 
-Log out as root when finished.
+Log out as `root` when finished.
 
 ## Debian
 
@@ -491,11 +509,15 @@ Update GRUB to use `nomodeset` from the previous step by editing `/etc/default/g
 
 To enable password-less `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
 
-    %sudo   ALL=(ALL:ALL) ALL
+```
+%sudo   ALL=(ALL:ALL) ALL
+```
 
 Add:
 
-    sysadm     ALL=(ALL) NOPASSWD:ALL
+```
+sysadm     ALL=(ALL) NOPASSWD:ALL
+```
     
 Where `sysadm` is the primary user.
 
@@ -503,7 +525,9 @@ Type `:x` to save and quit.
 
 **Optional** Change the default login shell to Zsh:
 
-    # chsh -s /usr/bin/zsh sysadm
+```
+# chsh -s /usr/bin/zsh sysadm
+```
 
 # Configure network interfaces
 
@@ -530,7 +554,9 @@ PING 10.8.1.1 (10.8.1.1): 56 data bytes
 
 **Optional** Randomize interface MAC address(es) on reboot in OpenBSD, e.g.:
 
-    $ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
+```console
+$ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
+```
 
 ## Debian
 
@@ -661,7 +687,7 @@ Host pcengines
   ControlPersist 1m
 ```
 
-To connect:
+Connect using the new alias:
 
 ```console
 $ ssh pcengines
@@ -671,7 +697,7 @@ Last login: Mon Jan 1 12:00:00 2018 from 10.8.1.2
 pcengines%
 ```
 
-To copy files:
+To copy files over:
 
 ```console
 $ scp .tmux.conf .vimrc .zshrc pcengines:~
@@ -707,8 +733,10 @@ Install dnsmasq, start the service and enable it on boot:
 
 ```console
 $ doas pkg_add dnsmasq
+
 $ doas rcctl start dnsmasq
 dnsmasq(ok)
+
 $ doas rcctl enable dnsmasq
 ```
 
@@ -716,11 +744,15 @@ $ doas rcctl enable dnsmasq
 
 Restart the service:
 
-    $ sudo service dnsmasq restart
+```console
+$ sudo service dnsmasq restart
+```
 
 Enable on boot:
 
-    $ sudo update-rc.d dnsmasq enable
+```console
+$ sudo update-rc.d dnsmasq enable
+```
 
 # Wireless Access Point
 
@@ -758,7 +790,7 @@ $ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo
 
 At a minimum, it should include:
 
-```shell
+```
 interface=wlan0
 driver=nl80211
 ssid="Hello, World!"
@@ -768,11 +800,15 @@ wpa_passphrase=super_secret_passphrase_999
 
 Restart the service:
 
-    $ sudo service hostapd restart
+```console
+$ sudo service hostapd restart
+```
 
 You may need to manually assign the interface an address:
 
-    $ sudo ifconfig wlan0 192.168.1.1
+```console
+$ sudo ifconfig wlan0 192.168.1.1
+```
 
 # IP forwarding
 
@@ -859,7 +895,9 @@ TODO
 
 Install required software:
 
-    $ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
+```console
+$ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
+```
 
 Download my Privoxy configuration and optionally my Lighttpd configuration:
 
