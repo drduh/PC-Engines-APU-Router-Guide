@@ -1,4 +1,4 @@
-This guide demonstrates how to build a router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and much more.
+This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and much more.
 
 I am **not** responsible for anything you do by following any part of this guide!
 
@@ -9,18 +9,14 @@ See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Pri
 The completed router configuration will enable:
 
 * An egress Ethernet interface for Internet routing - can be connected to WAN or a cable modem
-* A local wireless interface - `192.168.1.0/24`
-* A local Ethernet interface - `10.8.1.0/24`
-* A local Ethernet interface - `172.16.1.0/24`
+* A local wireless interface on `192.168.1.0/24`
+* A local Ethernet interface on `10.8.1.0/24`
+* A local Ethernet interface on `172.16.1.0/24`
 * An additional (4th) Ethernet interface is available on APU4+
-
-![network](https://user-images.githubusercontent.com/12475110/41503064-9e505032-717e-11e8-9b01-536abccd764d.png)
-
-*Example network topology configured using this guide*
 
 ## Hardware
 
-Order hardware online from [PC Engines](https://www.pcengines.ch/order.htm) directly, or through a reseller.
+Order directly from [PC Engines](https://www.pcengines.ch/order.htm) or through a reseller.
 
 This guide should work on any PC Engines APU model. Here is a suggested parts list:
 
@@ -38,11 +34,15 @@ To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](
 
 ## Assembly
 
-Read over the APU series [board reference](https://www.pcengines.ch/pdf/apu2.pdf) document before starting.
+Before starting, read over the relevant APU series manual:
+
+* [APU2](https://www.pcengines.ch/pdf/apu2.pdf)
+* [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
+* [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
 
 Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
 
-Attach the mSATA disk and miniPCI wireless adapter.
+Attach the mSATA disk and miniPCI wireless adapter in their respective slots.
 
 **Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
 
@@ -55,15 +55,23 @@ Power on the board. To avoid arcing, plug in the DC jack first, then plug the ad
 
 By default, a memory test should run, and you should hear the board make a loud "beep" noise. If not, reboot and press `F10` to select `Payload [memtest]` and complete at least one pass.
 
-# Preparing OS installation
+# Installer preparation
 
-Use another computer to prepare a operating system installer.
+Use another computer to prepare an installer for either OpenBSD or Debian.
 
-Insert a USB disk. Run `dmesg` to identify it.
+Insert a USB disk. Run `dmesg` to identify its label.
 
 ## OpenBSD
 
-Download the latest boot and installation image release, [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) and copy the file to the USB device:
+Download the latest installation image release - [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) - and copy the file to the USB disk:
+
+On OpenBSD:
+
+```console
+$ doas dd if=install64.fs of=/dev/rsd2c bs=1m
+```
+
+On Linux:
 
 ```console
 $ sudo dd if=install64.fs of=/dev/sdd bs=1M
@@ -71,97 +79,18 @@ $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-### Easy way
+Download the latest network installer image - [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
 
-Download the latest [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) image and copy it to the USB disk:
+On OpenBSD:
+
+```console
+$ doas dd if=debian-9.7.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+```
+
+On Linux:
 
 ```console
 $ sudo dd if=debian-9.7.0-amd64-netinst.iso of=/dev/sdd bs=1M
-```
-
-### Manual way
-
-Erase and partition the USB disk using `cfdisk`, selecting `FAT16 (6)` as the partition type (must be under 4GB in size), and make it bootable:
-
-```console
-$ sudo cfdisk /dev/sdd
-```
-    
-You can also use a GUI-based software like `gparted` for the same.
-
-Install the master boot record:
-
-```console
-$ sudo install-mbr /dev/sdd
-```
-    
-Install the package `dosfstools` to create the proper filesystem:
-
-```console
-$ sudo mkfs.fat -F 16 -I /dev/sdd1
-```
-
-Install the [SYSLINUX bootloader](https://www.syslinux.org/wiki/index.php?title=Install):
-
-```console
-$ sudo syslinux /dev/sdd1
-```
-
-Mount the new filesystem:
-
-```console
-$ sudo mkdir /mnt/usb
-
-$ sudo mount /dev/sdd1 /mnt/usb
-
-$ cd /mnt/usb
-```
-
-Download netboot installer files:
-
-```console
-$ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
-
-$ sudo curl -LfvO http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
-```
-
-**Optional** Install non-free firmware (only required by APU1D - uses Realtek RTL8111E):
-
-```console
-$ sudo curl -LfvO https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.zip
-```
-
-Verify file integrity:
-
-```console
-$ shasum -a 256 linux initrd.gz firmware.zip
-bea409469a665a930954c7ee1bbaa77964357988163d83a50ff741d1bbba0811  linux
-362be3860fc427b3fe81071741d56863b37a8fc05e3126142559782a9b9d0749  initrd.gz
-0aaee0d6388fc626317b0f248b9bd1d0954f847707a3d0e377e82761fd45aa41  firmware.zip
-```
-
-In the same `/mnt/usb` directory, create a file called `syslinux.cfg` with the following contents:
-
-```
-default linux
-timeout 100
-prompt 1
-label linux
-kernel linux
-append vga=off initrd=initrd.gz console=ttyS0,115200n8 fb=false
-```
-
-The directory contents should contain:
-
-```console
-$ ls /mnt/usb
-firmware.zip  initrd.gz  ldlinux.c32  ldlinux.sys  linux  syslinux.cfg
-```
-
-Unmount the USB drive:
-
-```console
-$ sudo umount /mnt/usb
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -170,31 +99,33 @@ Unplug the USB disk and plug it into the APU.
 
 The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit).
 
-To connect from OpenBSD, use [cu](https://man.openbsd.org/cu):
+On OpenBSD, use [cu](https://man.openbsd.org/cu):
 
 ```console
 $ doas cu -r -s 115200 -l cuaU0
 ```
 
-To connect from Linux, use [screen](https://www.gnu.org/software/screen/manual/screen.html):
+On Linux, use [screen](https://www.gnu.org/software/screen/manual/screen.html):
 
 ```console
 $ screen /dev/ttyUSB0 115200 8N1
 ```
 
-Or use minicom:
+Or use [minicom](https://linux.die.net/man/1/minicom):
 
 ```console
 $ sudo minicom -D /dev/ttyUSB0
 ```
 
-Power up the APU board, DC jack first. Make note of the BIOS version displayed briefly before POST.
+Power up the APU board, DC jack first.
+
+Make note of the BIOS version displayed briefly during boot.
 
 # Updating BIOS
 
-If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and latest BIOS release.
+If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest BIOS release.
 
-**Note** Check the release notes as newer BIOS versions may be incompatible with miniPCI cards!
+**Note** Check the release notes as some PCIe cards are not detected on certain OSes with newer/mainline versions.
 
 ## Prepare
 
@@ -217,7 +148,7 @@ $ sudo umount /mnt/usb
 
 ## Boot
 
-Connect the USB disk to the APU, press `F10` at boot and select the USB drive:
+Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
 
 ```console
 SeaBIOS (version rel-1.11.0.7-0-gdc51f90)
@@ -293,7 +224,7 @@ $ sudo dmesg | grep apu
 
 # Installing the OS
 
-Press `F10` at boot and select the USB drive.
+Press `F10` at boot and select the USB disk.
 
 ## OpenBSD
 
@@ -415,19 +346,29 @@ Available disks are: sd1 sd2.
 Which disk do you wish to initialize? (or 'done') [done]
 ```
 
-Select a [mirror](https://www.openbsd.org/ftp.html) and complete the setup, then unplug the USB drive and reboot.
+Select a [mirror](https://www.openbsd.org/ftp.html) and complete the setup, then unplug the USB disk and reboot.
 
 See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
 
 ## Debian
 
-Use the graphical installer and select the **internal drive** as the disk to partition. Also be sure to select it as the target for boot loader installation.
+At the install menu, press `Tab` to edit boot options and replace `quiet` with:
+
+```
+console=ttyS0,115200n8
+```
+
+Proceed through the installer, selecting *Guided - use entire disk* as the partioning method. Be sure to select the SSD disk rather than the USB drive as the installation target.
+
+Select the option to store `/var`, `/tmp` and `/home` on separate partitions [if possible](https://www.debian.org/releases/stable/armel/apcs03.html.en).
+
+Be sure to select `/dev/sda` or equivalent SSD disk at the GRUB loader installation prompt.
 
 # First boot
 
 ## OpenBSD
 
-The following parameters have been appended to `/etc/boot.conf` by the installer and everything should just work:
+The following boot parameters have been appended to `/etc/boot.conf` by the installer and everything should just work:
 
 ```
 stty com0 115200
@@ -436,17 +377,17 @@ set tty com0
 
 ## Debian
 
-At the GRUB menu, you may get stuck at:
+After the GRUB menu, output will get stuck at:
 
 ```
 Loading Linux 4.9.0-6-amd64 ...
 Loading initial ramdisk ...
 ```
 
-If this is the case, reboot and press `e` at the kernel selection screen in GRUB to enter edit mode, scroll down and replace the word `quiet` with:
+Reboot and select `e` at the GRUB menu to enter edit mode, scroll down and replace the word `quiet` with:
 
 ```
-nomodeset console=ttyS0,115200n8
+console=ttyS0,115200n8
 ```
     
 **Note** If arrow keys do not work in GRUB, try using emacs key bindings to navigate the text field:
@@ -456,7 +397,7 @@ nomodeset console=ttyS0,115200n8
 * `Control-P` to move up
 * `Control-N` to move down
 
-Press `Control-X` to continue booting. You should see verbose boot messages appear on the screen.
+Press `Control-X` to continue booting and you should see console output.
 
 **Note** If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
@@ -493,35 +434,30 @@ Log out as `root` when finished.
 
 ## Debian
 
-Log in as `root` to install pending updates and needed software:
+Log in as `root` to get started.
+
+Update GRUB by editing `/etc/default/grub` and replacing `quiet` with `console=ttyS0,115200n8`, then update the configuration:
 
 ```console
-$ apt-get update && apt-get -y upgrade
-$ apt-get -y install \
-    sudo ssh tmux lsof vim zsh tcpdump \
+root@pcengines:~# update-grub2
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-4.9.0-8-amd64
+Found initrd image: /boot/initrd.img-4.9.0-8-amd64
+```
+
+Install any pending updates or install software:
+
+```console
+root@pcengines:~# apt-get update && apt-get -y upgrade
+
+root@pcengines:~# apt-get -y install \
+    sudo ssh tmux lsof vim zsh git \
     dnsmasq privoxy hostapd \
-    iptables iptables-persistent curl dnsutils ntp net-tools \
+    iptables iptables-persistent \
+    curl dnsutils ntp net-tools tcpdump \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
     man-db jmtpfs file htop lshw less
 ```
-
-Update GRUB to use `nomodeset` from the previous step by editing `/etc/default/grub` and replacing `quiet` with `nomodeset console=ttyS0,115200n8`. Then run `sudo update-grub` to generate the GRUB configuration file.
-
-To enable password-less `sudo`, type `EDITOR=vi visudo` as the root user, and below the line:
-
-```
-%sudo   ALL=(ALL:ALL) ALL
-```
-
-Add:
-
-```
-sysadm     ALL=(ALL) NOPASSWD:ALL
-```
-    
-Where `sysadm` is the primary user.
-
-Type `:x` to save and quit.
 
 **Optional** Change the default login shell to Zsh:
 
@@ -531,7 +467,7 @@ Type `:x` to save and quit.
 
 # Configure network interfaces
 
-Now an Ethernet or wireless network interface (or both) can be set up to continue the rest of the setup over SSH instead of the serial terminal.
+Ethernet or wireless network interfaces can now be configured.
 
 ## OpenBSD
 
@@ -539,20 +475,21 @@ On the APU, set a local network interface address and make it permanent:
 
 ```console
 $ doas ifconfig em1 10.8.1.1 255.255.255.0
+
 $ echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
 ```
 
-Configure the client with DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html) or using a static address:
+Configure an OpenBSD client with DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html) or using a static address:
 
 ```console
-$ doas ifconfig em1 10.8.1.2 255.255.255.0
-$ ping 10.8.1.1
+$ doas ifconfig em1 10.8.1.4 255.255.255.0
+
+$ ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=255 time=0.845 ms
-^C
 ```
 
-**Optional** Randomize interface MAC address(es) on reboot in OpenBSD, e.g.:
+**Optional** Randomize MAC addresses on boot:
 
 ```console
 $ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
@@ -560,10 +497,10 @@ $ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/ho
 
 ## Debian
 
-From the APU and another Linux computer, determine the interface names available:
+On the APU and on another computer, determine the interface names available:
 
 ```console
-root@pcengines# lshw -C network | grep "logical name"
+root@pcengines:~# lshw -C network | grep "logical name"
        logical name: enp1s0
        logical name: enp2s0
        logical name: enp3s0
@@ -584,14 +521,17 @@ netmask 255.255.255.0
 gateway 10.8.1.1
 ```
 
-Then restart networking and bring up the interface:
+Where `enp1s0` is the Ethernet port nearest to the serial port.
+
+Restart networking and bring up the interface:
 
 ```console
-$ sudo service networking restart
-$ sudo ifup enp2s0
+root@pcengines:~# service networking restart
+
+root@pcengines:~# ifup enp2s0
 ```
 
-On the other Linux computer, append:
+On another Linux computer, edit `/etc/network/interfaces` to append:
 
 ```
 allow-hotplug eno1
@@ -605,18 +545,25 @@ Then also restart networking and bring up the interface:
 
 ```console
 $ sudo service networking restart
+
 $ sudo ifup eno1
+```
+
+Or on another OpenBSD computer, edit `/etc/hostname.em0` to append:
+
+```
+inet 10.8.1.4 255.255.255.0
 ```
 
 It should now be possible to ping the router:
 
 ```console
 $ ping -c 1 10.8.1.1
-PING 10.8.1.1 (10.8.1.1) 56(84) bytes of data.
-64 bytes from 10.8.1.1: icmp_seq=1 ttl=64 time=0.693 ms
+PING 10.8.1.1 (10.8.1.1): 56 data bytes
+64 bytes from 10.8.1.1: icmp_seq=0 ttl=64 time=0.519 ms
 ```
 
-To configure the wireless interface, edit `/etc/network/interfaces` to include:
+To configure the wireless interface, edit `/etc/network/interfaces` on the APU to include:
 
 ```
 auto wlp4s0
@@ -626,9 +573,11 @@ netmask 255.255.255.0
 hostapd /etc/hostapd.conf
 ```
 
+Log out as `root` or reboot to continue.
+
 # Configure SSH
 
-An SSH connection to the router should now be able to be established, but not yet authorized:
+From a client, an SSH connection to the APU should be possible, but not yet authorized:
 
 ```console
 $ ssh sysadm@10.8.1.1
@@ -639,7 +588,13 @@ Warning: Permanently added '10.8.1.1' (ECDSA) to the list of known hosts.
 Permission denied (publickey,password).
 ```
 
-Generate an SSH keypair on a computer that will be used to login to the router:
+If using a [YubiKey](https://github.com/drduh/YubiKey-Guide), copy its public key to clipboard:
+
+```console
+$ ssh-add -L | awk '{print $1" "$2}' | xclip
+```
+
+Or generate new key on the client and copy it to clipboard:
 
 ```console
 $ ssh-keygen -f ~/.ssh/pcengines -C 'sysadm'
@@ -648,33 +603,29 @@ Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
 Your identification has been saved in .ssh/pcengines.
 Your public key has been saved in .ssh/pcengines.pub.
-```
 
-Copy the public key to clipboard:
-
-```console
 $ cat ~/.ssh/pcengines.pub | xclip
 ```
 
-Over the serial connection, as the configured user (e.g. `sysadm` - *not* `root`) on the router, configure SSH to accept that key:
+On the APU, over the serial connection, as the primary user (e.g., `sysadm` - *not* `root`), configure SSH to accept that key by pasting it into `~/.ssh/authorized_keys`:
 
 ```console
 $ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
-[Paste the copied public key using the middle mouse button]
-[Press Control-D to save]
+[Paste clipboard contents using the middle mouse button]
+[Then press Control-D to save]
 ```
 
-The SSH connection should now be accepted by specifying the private key:
+SSH from a client will now work:
 
 ```console
 $ ssh sysadm@10.8.1.1 -i ~/.ssh/pcengines
 Host key fingerprint is SHA256:AAAAA
 
-Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
-pcengines%
+Linux pcengines 4.9.0-8-amd64 #1 SMP Debian 4.9.130-2 (2018-10-27) x86_64
+sysadm@pcengines~ %
 ```
 
-To make connecting and copying files over easier, append the following to `~/.ssh/config` on a client:
+Configure the connection on a client by editing `~/.ssh/config`:
 
 ```
 Host pcengines
@@ -692,39 +643,32 @@ Connect using the new alias:
 ```console
 $ ssh pcengines
 Host key fingerprint is SHA256:AAAAA
-Linux pcengines1 4.9.0-6-amd64 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) x86_64
 Last login: Mon Jan 1 12:00:00 2018 from 10.8.1.2
-pcengines%
+sysadm@pcengines~ %
 ```
 
-To copy files over:
+**Optional** Clone my configuration repository for the rest of the setup:
 
 ```console
-$ scp .tmux.conf .vimrc .zshrc pcengines:~
+$ git clone https://github.com/drduh/config
 ```
-
-See [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) to secure SSH keys.
 
 # DHCP and DNS
 
 [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
 
-Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) or edit `/etc/dnsmasq.conf` to include at least the following options:
+Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) with blocklists and configure to your needs:
 
-```
-dhcp-lease-max=15
-dhcp-option=option:router,192.168.1.1
-dhcp-range=192.168.1.2,192.168.1.15,24h
-domain-needed
-interface=wlan0
-listen-address=127.0.0.1,192.168.1.1
-log-async=5
-log-dhcp
-log-facility=/var/log/dnsmasq
-server=1.1.1.1
-server=8.8.8.8
-stop-dns-rebind
-bogus-priv
+```console
+$ sudo cp config/dnsmasq.conf /etc/dnsmasq.conf
+
+$ cat config/domains/* | sudo tee -a /etc/dnsmasq.conf
+
+$ sudo vim /etc/dnsmasq.conf
+
+$ git clone https://github.com/StevenBlack/hosts
+
+$ sudo cp hosts/hosts /etc/dns-blocklist
 ```
 
 ## OpenBSD
@@ -742,23 +686,19 @@ $ doas rcctl enable dnsmasq
 
 ## Debian
 
-Restart the service:
+Restart the service and enable it on boot:
 
 ```console
 $ sudo service dnsmasq restart
-```
 
-Enable on boot:
-
-```console
 $ sudo update-rc.d dnsmasq enable
 ```
 
-# Wireless Access Point
+# Wireless
 
 ## OpenBSD
 
-**Note** Wireless performance is significantly worse on OpenBSD than Debian.
+**Note** Wireless performance is currently significantly worse on OpenBSD than Debian.
 
 Edit `/etc/hostname.athn0` to include:
 
@@ -782,32 +722,62 @@ Install the default hostapd configuration:
 $ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
 ```
 
-Or download and use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
+Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
 
 ```console
-$ curl https://raw.githubusercontent.com/drduh/config/master/hostapd.conf | sudo tee /etc/hostapd.conf
+$ sudo cp config/hostapd.conf /etc/hostapd.conf
+
+$ sudo vim /etc/hostapd.conf
 ```
 
-At a minimum, it should include:
-
-```
-interface=wlan0
-driver=nl80211
-ssid="Hello, World!"
-wpa=2
-wpa_passphrase=super_secret_passphrase_999
-```
-
-Restart the service:
+Ensure hostapd starts:
 
 ```console
-$ sudo service hostapd restart
+$ sudo hostapd -dd /etc/hostapd.conf
 ```
 
-You may need to manually assign the interface an address:
+If there are any syntax errors, you may need a newer version of hostapd:
 
 ```console
-$ sudo ifconfig wlan0 192.168.1.1
+$ curl -O https://w1.fi/releases/hostapd-2.7.tar.gz
+
+$ sha256sum hostapd-2.7.tar.gz
+21b0dda3cc3abe75849437f6b9746da461f88f0ea49dd621216936f87440a141  hostapd-2.7.tar.gz
+
+$ tar xf hostapd-2.7.tar.gz
+
+$ cd hostapd-2.7/hostapd
+
+$ sudo apt-get install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
+
+$ cp defconfig .config
+
+$ make -sj8
+
+$ sudo make install
+
+$ hostapd -v
+hostapd v2.7
+
+$ sudo hostapd -d /etc/hostapd.conf
+Configuration file: /etc/hostapd.conf
+wlp4s0: interface state UNINITIALIZED->COUNTRY_UPDATE
+ACS: Automatic channel selection started, this may take a bit
+wlp4s0: interface state COUNTRY_UPDATE->ACS
+wlp4s0: ACS-STARTED
+wlp4s0: ACS-COMPLETED freq=5220 channel=44
+Using interface wlp4s0 with hwaddr 00:20:91:f8:bb:fb and ssid "foo"
+wlp4s0: interface state ACS->ENABLED
+wlp4s0: AP-ENABLED
+wlp4s0: STA 00:20:91:d1:c3:8a IEEE 802.11: authenticated
+wlp4s0: STA 00:20:91:d1:c3:8a IEEE 802.11: associated (aid 1)
+wlp4s0: AP-STA-CONNECTED 00:20:91:d1:c3:8a
+```
+
+**Note** You may need to manually assign the interface an address:
+
+```console
+$ sudo ifconfig wlp4s0 192.168.1.1
 ```
 
 # IP forwarding
@@ -867,17 +837,21 @@ $ doas tcpdump -qni pflog0
 
 ## Debian
 
-Use [IPTables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall.
+Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall.
 
-Download and edit [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh):
+Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
 
 ```console
-$ curl -LfvO https://raw.githubusercontent.com/drduh/config/master/scripts/iptables.sh
+$ cp config/scripts/iptables.sh firewall.sh
+
+$ vim firewall.sh
+
+$ chmod +x firewall.sh
+
+$ sudo ./firewall.sh
 ```
 
-Use `chmod +x iptables.sh` to make the script executable and apply with `sudo ./iptables.sh`.
-
-Make the firewall rules apply on reboot:
+Apply the firewall rules on boot:
 
 ```console
 $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
@@ -885,21 +859,19 @@ $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 
 # Web filtering
 
-[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs. It may be used in combination with [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) to block or replace ads/content with custom images, for example.
+[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs.
 
-## OpenBSD
-
-TODO
+It can be used in combination with [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) to block or replace ads/content with custom pages and images.
 
 ## Debian
 
-Install required software:
+Install Privoxy and Lighttpd with magnet mod:
 
 ```console
 $ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
 ```
 
-Download my Privoxy configuration and optionally my Lighttpd configuration:
+Use my configurations and edit them to your needs:
 
 * [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config)
 * [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action)
@@ -907,19 +879,35 @@ Download my Privoxy configuration and optionally my Lighttpd configuration:
 * [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau)
 
 ```console
-$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/config | sudo tee /etc/privoxy/config
-$ curl https://raw.githubusercontent.com/drduh/config/master/privoxy/user.action | sudo tee /etc/privoxy/user.action
+$ sudo cp config/privoxy/config /etc/privoxy
+$ sudo cp config/privoxy/user.action /etc/privoxy/
 
-$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd/lighttpd.conf | sudo tee /etc/lighttpd/lighttpd.conf
-$ curl https://raw.githubusercontent.com/drduh/config/master/lighttpd/magnet.luau | sudo tee /etc/lighttpd/magnet.luau
+$ sudo cp config/lighttpd/lighttpd.conf /etc/lighttpd
+$ sudo cp config/lighttpd/magnet.luau /etc/lighttpd
 ```
 
-Restart both services and check to make sure they work by tailing their respective log files:
+Restart both services and check their logs:
 
 ```console
 $ sudo service privoxy restart
 
+$ sudo tail -f /var/log/privoxy/logfile
+Info: Program name: /usr/sbin/privoxy
+Info: Loading filter file: /etc/privoxy/default.filter
+Info: Loading filter file: /etc/privoxy/user.filter
+Info: Loading actions file: /etc/privoxy/default.action
+Info: Loading actions file: /etc/privoxy/match-all.action
+Info: Loading actions file: /etc/privoxy/user.action
+Info: Listening on port 8118 on IP address 127.0.0.1
+Info: Listening on port 8118 on IP address 10.8.1.1
+Info: Listening on port 8118 on IP address 172.16.1.1
+Request: example.com/
+Crunch: Redirected: http://bbc.com/
+
 $ sudo service lighttpd restart
+
+$ sudo cat /var/log/lighttpd/error.log
+2019-01-01 12:00:00: (log.c.217) server started
 ```
 
 # Security and maintenance
