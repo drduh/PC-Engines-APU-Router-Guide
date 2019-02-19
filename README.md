@@ -12,7 +12,7 @@ The completed router configuration will enable:
 * A local wireless interface on `192.168.1.0/24`
 * A local Ethernet interface on `10.8.1.0/24`
 * A local Ethernet interface on `172.16.1.0/24`
-* An additional (4th) Ethernet interface is available on APU4+
+* An additional (4th) Ethernet interface is available on APU4
 
 ## Hardware
 
@@ -34,7 +34,7 @@ To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](
 
 ## Assembly
 
-Before starting, read over the relevant APU series manual:
+Before starting, read the relevant APU series manual:
 
 * [APU2](https://www.pcengines.ch/pdf/apu2.pdf)
 * [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
@@ -79,7 +79,7 @@ $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the latest network installer image - [`netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
+Download the latest network installer image - [`amd64/netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
 
 On OpenBSD:
 
@@ -127,26 +127,29 @@ If the BIOS version is [out of date](https://pcengines.github.io/), download and
 
 **Note** Check the release notes as some PCIe cards are not detected on certain OSes with newer/mainline versions.
 
-## Prepare
-
 Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
 
 ```console
+$ curl -O https://pcengines.ch/file/apu2-tinycore6.4.img.gz
+
+$ gzip -d apu2-tinycore6.4.img.gz
+
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 511+0 records in
 511+0 records out
 535822336 bytes (536 MB, 511 MiB) copied, 22.9026 s, 23.4 MB/s
 
-$ sudo mount /dev/sdd1 /mnt/usb
+$ sudo mkdir /mnt/usb ; sudo mount /dev/sdd1 /mnt/usb
 
-$ tar zxvf apu4_v4.8.0.7.rom.tar.gz
+$ gzip -d apu4_v4.9.0.1.rom.tar.gz
 
-$ sudo cp -v apu4_v4.8.0.7.rom /mnt/usb
+$ tar xvf apu4_v4.9.0.1.rom.tar
+apu4_v4.9.0.1.rom
+
+$ sudo cp -v apu4_v4.9.0.1.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
-
-## Boot
 
 Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
 
@@ -163,8 +166,6 @@ Select boot device:
 4. Payload [memtest]
 ```
 
-## Flash
-
 Check the current BIOS versions:
 
 ```console
@@ -177,32 +178,27 @@ Save the existing BIOS image and write the new one, then reboot:
 ```console
 root@pcengines:~# cd /media/SYSLINUX
 
-root@pcengiens:~# flashrom -p internal -r apu4.rom.$(date +%F)
+root@pcengiens:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
+[...]
+Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
+Reading flash... done.
 
-root@pcengines:~# flashrom -p internal -w apu4_v4.8.0.7.rom
-flashrom v0.9.8-r1888 on Linux 3.16.6-tinycore (i686)
-flashrom is free software, get the source code at http://www.flashrom.org
-
-Calibrating delay loop... OK.
-coreboot table found at 0xcfed1000.
-Found chipset "AMD FCH".
-Enabling flash write... OK.
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.1.rom
+[...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
 Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
-
-root@pcengines:~# reboot
 ```
 
-## Verify
+Unplug the USB disk and reboot.
 
 Verify the BIOS version by checking serial output during boot, or from the operating system:
 
 ```
 PC Engines apu4
-coreboot build 20180312
-BIOS version v4.8.0.7
+coreboot build 20190901
+BIOS version v4.9.0.1
 ```
 
 OpenBSD:
@@ -210,7 +206,7 @@ OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfe9a020 (7 entries)
-bios0: vendor coreboot version "v4.8.0.7" date 12/03/2018
+bios0: vendor coreboot version "v4.9.0.1" date 01/09/2019
 bios0: PC Engines apu4
 acpi0 at bios0: rev 2
 ```
@@ -219,7 +215,7 @@ Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.1 01/09/2019
 ```
 
 # Installing the OS
@@ -318,7 +314,7 @@ The auto-allocated layout for sd0 is:
   k:            63.4G        101554720  4.2BSD   2048 16384     1 # /home
 ```
 
-**Note** The 111.8G "unused" space partition (/dev/sd0c) is actually the entire disk.
+**Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the entire disk.
 
 Select "Auto layout" to continue:
 
@@ -358,11 +354,11 @@ At the install menu, press `Tab` to edit boot options and replace `quiet` with:
 console=ttyS0,115200n8
 ```
 
-Proceed through the installer, selecting *Guided - use entire disk* as the partioning method. Be sure to select the SSD disk rather than the USB drive as the installation target.
+Proceed through the installer, selecting *Guided - use entire disk* as the partioning method. Be sure to select the SSD rather than the USB disk as the installation target.
 
 Select the option to store `/var`, `/tmp` and `/home` on separate partitions [if possible](https://www.debian.org/releases/stable/armel/apcs03.html.en).
 
-Be sure to select `/dev/sda` or equivalent SSD disk at the GRUB loader installation prompt.
+Select `/dev/sda` or equivalent SSD device as the GRUB loader target.
 
 # First boot
 
@@ -384,7 +380,7 @@ Loading Linux 4.9.0-6-amd64 ...
 Loading initial ramdisk ...
 ```
 
-Reboot and select `e` at the GRUB menu to enter edit mode, scroll down and replace the word `quiet` with:
+Reboot and press `e` at the GRUB menu to enter edit mode, scroll down and replace the word `quiet` with:
 
 ```
 console=ttyS0,115200n8
@@ -436,7 +432,7 @@ Log out as `root` when finished.
 
 Log in as `root` to get started.
 
-Update GRUB by editing `/etc/default/grub` and replacing `quiet` with `console=ttyS0,115200n8`, then update the configuration:
+Update GRUB by editing `/etc/default/grub` and replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
 root@pcengines:~# update-grub2
@@ -454,7 +450,7 @@ root@pcengines:~# apt-get -y install \
     sudo ssh tmux lsof vim zsh git \
     dnsmasq privoxy hostapd \
     iptables iptables-persistent \
-    curl dnsutils ntp net-tools tcpdump \
+    curl dnsutils ntp net-tools tcpdump whois \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
     man-db jmtpfs file htop lshw less
 ```
@@ -766,12 +762,12 @@ ACS: Automatic channel selection started, this may take a bit
 wlp4s0: interface state COUNTRY_UPDATE->ACS
 wlp4s0: ACS-STARTED
 wlp4s0: ACS-COMPLETED freq=5220 channel=44
-Using interface wlp4s0 with hwaddr 00:20:91:f8:bb:fb and ssid "foo"
+Using interface wlp4s0 with hwaddr ca:9c:bc:8a:c7:5b and ssid "foo"
 wlp4s0: interface state ACS->ENABLED
 wlp4s0: AP-ENABLED
-wlp4s0: STA 00:20:91:d1:c3:8a IEEE 802.11: authenticated
-wlp4s0: STA 00:20:91:d1:c3:8a IEEE 802.11: associated (aid 1)
-wlp4s0: AP-STA-CONNECTED 00:20:91:d1:c3:8a
+wlp4s0: STA c7:2d:df:b0:20:62 IEEE 802.11: authenticated
+wlp4s0: STA c7:2d:df:b0:20:62 IEEE 802.11: associated (aid 1)
+wlp4s0: AP-STA-CONNECTED c7:2d:df:b0:20:62
 ```
 
 **Note** You may need to manually assign the interface an address:
@@ -892,12 +888,7 @@ Restart both services and check their logs:
 $ sudo service privoxy restart
 
 $ sudo tail -f /var/log/privoxy/logfile
-Info: Program name: /usr/sbin/privoxy
-Info: Loading filter file: /etc/privoxy/default.filter
-Info: Loading filter file: /etc/privoxy/user.filter
-Info: Loading actions file: /etc/privoxy/default.action
-Info: Loading actions file: /etc/privoxy/match-all.action
-Info: Loading actions file: /etc/privoxy/user.action
+[...]
 Info: Listening on port 8118 on IP address 127.0.0.1
 Info: Listening on port 8118 on IP address 10.8.1.1
 Info: Listening on port 8118 on IP address 172.16.1.1
@@ -926,9 +917,9 @@ It may also be possible to increase system entropy with an external source like 
 
 ## OpenBSD
 
-Check open ports and listening programs with `doas fstat | grep net` or `doas netstat -a -n -p udp -p tcp`.
+Check open ports with `doas fstat | grep net` or `doas netstat -a -n -p udp -p tcp`.
 
-Check running processes and logged-in users with `ps -A` and `last`.
+Check running processes and sessions with `ps -A` and `last`.
 
 Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
 
