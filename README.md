@@ -63,7 +63,7 @@ Insert a USB disk. Run `dmesg` to identify its label.
 
 ## OpenBSD
 
-Download the latest installation image release - [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) - and copy the file to the USB disk:
+Download the installation image - [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) - and copy the file to the USB disk:
 
 On OpenBSD:
 
@@ -79,18 +79,18 @@ $ sudo dd if=install64.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the latest network installer image - [`amd64/netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
+Download the network installation image - [`amd64/debian-9.8.0-amd64-netinst.is`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
 
 On OpenBSD:
 
 ```console
-$ doas dd if=debian-9.7.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-9.8.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=debian-9.7.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-9.8.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -117,7 +117,7 @@ Or use [minicom](https://linux.die.net/man/1/minicom):
 $ sudo minicom -D /dev/ttyUSB0
 ```
 
-Power up the APU board, DC jack first.
+Power up the APU, DC jack first.
 
 Make note of the BIOS version displayed briefly during boot.
 
@@ -127,7 +127,31 @@ If the BIOS version is [out of date](https://pcengines.github.io/), download and
 
 **Note** Check the release notes as some PCIe cards are not detected on certain OSes with newer/mainline versions.
 
-Mount a USB disk and write the TinyCore image, then copy the `.rom` file:
+Recent firmware versions are signed. Get the signing key and verify file integrity:
+
+```console
+$ gpg --keyserver hkps://pool.sks-keyservers.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
+gpg: key 0xBCBD680B66346D19: 1 signature not checked due to a missing key
+gpg: key 0xBCBD680B66346D19: public key "PC Engines Open Source Firmware Release 4.9 Signing Key" imported
+gpg: no ultimately trusted keys found
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+$ gpg apu4*sig
+gpg: WARNING: no command supplied.  Trying to guess what you mean ...
+gpg: assuming signed data in 'apu4_v4.9.0.4.SHA256'
+gpg: Signature made Mon Apr  8 00:38:42 2019 PDT
+gpg:                using RSA key F78F1CBC219338BB034008D7BCBD680B66346D19
+gpg: Good signature from "PC Engines Open Source Firmware Release 4.9 Signing Key" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
+
+$ shasum -a256 apu4_v4.9.0.4.rom | grep $(cat apu4_v4.9.0.4.SHA256 | awk '{print $1}') -q && echo ok
+ok
+```
+
+Mount a USB disk and write the TinyCore image, copy the `.rom` file:
 
 ```console
 $ curl -O https://pcengines.ch/file/apu2-tinycore6.4.img.gz
@@ -141,12 +165,7 @@ $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 
 $ sudo mkdir /mnt/usb ; sudo mount /dev/sdd1 /mnt/usb
 
-$ gzip -d apu4_v4.9.0.1.rom.tar.gz
-
-$ tar xvf apu4_v4.9.0.1.rom.tar
-apu4_v4.9.0.1.rom
-
-$ sudo cp -v apu4_v4.9.0.1.rom /mnt/usb
+$ sudo cp -v apu4_v4.9.0.4.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -173,17 +192,17 @@ root@pcengines:~# dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
 ```
 
-Save the existing BIOS image and write the new one, then reboot:
+Save the existing version and write the new one:
 
 ```console
 root@pcengines:~# cd /media/SYSLINUX
 
-root@pcengiens:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
+root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.1.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.4.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -191,22 +210,22 @@ Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
 ```
 
-Unplug the USB disk and reboot.
+Unplug the USB disk and `reboot`.
 
 Verify the BIOS version by checking serial output during boot, or from the operating system:
 
 ```
 PC Engines apu4
-coreboot build 20190901
-BIOS version v4.9.0.1
+coreboot build 20190304
+BIOS version v4.9.0.4
 ```
 
 OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfe9a020 (7 entries)
-bios0: vendor coreboot version "v4.9.0.1" date 01/09/2019
+bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfea9020 (9 entries)
+bios0: vendor coreboot version "v4.9.0.4" date 04/03/2019
 bios0: PC Engines apu4
 acpi0 at bios0: rev 2
 ```
@@ -215,7 +234,7 @@ Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.1 01/09/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.4 04/03/2019
 ```
 
 # Installing the OS
