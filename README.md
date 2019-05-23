@@ -63,41 +63,41 @@ Insert a USB disk. Run `dmesg` to identify its label.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.4/amd64/install64.fs) - and copy the file to the USB disk:
+Download the installation image - [`amd65/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - and copy the file to the USB disk:
 
 On OpenBSD:
 
 ```console
-$ doas dd if=install64.fs of=/dev/rsd2c bs=1m
+$ doas dd if=install65.fs of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install64.fs of=/dev/sdd bs=1M
+$ sudo dd if=install65.fs of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`amd64/debian-9.8.0-amd64-netinst.is`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
+Download the network installation image - [`amd64/debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
 
 On OpenBSD:
 
 ```console
-$ doas dd if=debian-9.8.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-9.9.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=debian-9.8.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-9.9.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
 
 # Connect over serial
 
-The APU uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit).
+The APU serial connection uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 stop bit).
 
 On OpenBSD, use [cu](https://man.openbsd.org/cu):
 
@@ -121,13 +121,19 @@ Power up the APU, DC jack first.
 
 Make note of the BIOS version displayed briefly during boot.
 
-# Updating BIOS
+# Updating firmware
 
-If the BIOS version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest BIOS release.
+If the firmware version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest BIOS release.
 
-**Note** Check the release notes as some PCIe cards are not detected on certain OSes with newer/mainline versions.
+**Note** Recent firmware version may require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
-Recent firmware versions are signed. Get the signing key and verify file integrity:
+Get the signing key to verify file integrity:
+
+```console
+$ gpg --keyserver hkps://keys.gnupg.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
+```
+
+Or:
 
 ```console
 $ gpg --keyserver hkps://pool.sks-keyservers.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
@@ -139,15 +145,15 @@ gpg:               imported: 1
 
 $ gpg apu4*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.9.0.4.SHA256'
-gpg: Signature made Mon Apr  8 00:38:42 2019 PDT
+gpg: assuming signed data in 'apu4_v4.9.0.5.SHA256'
+gpg: Signature made Thu May  9 02:52:11 2019 PDT
 gpg:                using RSA key F78F1CBC219338BB034008D7BCBD680B66346D19
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.9 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
 
-$ shasum -a256 apu4_v4.9.0.4.rom | grep $(cat apu4_v4.9.0.4.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.9.0.5.rom | grep $(cat apu4_v4.9.0.5.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -163,9 +169,11 @@ $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 511+0 records out
 535822336 bytes (536 MB, 511 MiB) copied, 22.9026 s, 23.4 MB/s
 
-$ sudo mkdir /mnt/usb ; sudo mount /dev/sdd1 /mnt/usb
+$ sudo mkdir /mnt/usb
 
-$ sudo cp -v apu4_v4.9.0.4.rom /mnt/usb
+$ sudo mount /dev/sdd1 /mnt/usb
+
+$ sudo cp -v apu4_v4.9.0.5.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -173,7 +181,7 @@ $ sudo umount /mnt/usb
 Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
 
 ```console
-SeaBIOS (version rel-1.11.0.7-0-gdc51f90)
+SeaBIOS (version rel-1.12.1.1-0-g55d345f)
 
 Press F10 key now for boot menu
 
@@ -185,7 +193,7 @@ Select boot device:
 4. Payload [memtest]
 ```
 
-Check the current BIOS versions:
+Check the current BIOS version:
 
 ```console
 root@pcengines:~# dmesg | grep apu
@@ -202,7 +210,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.4.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.5.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -212,29 +220,30 @@ Verifying flash... VERIFIED.
 
 Unplug the USB disk and `reboot`.
 
-Verify the BIOS version by checking serial output during boot, or from the operating system:
+Verify the BIOS version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190304
-BIOS version v4.9.0.4
+coreboot build 20190905
+BIOS version v4.9.0.5
 ```
 
-OpenBSD:
+Or from OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfea9020 (9 entries)
-bios0: vendor coreboot version "v4.9.0.4" date 04/03/2019
+bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfea8020 (12 entries)
+bios0: vendor coreboot version "v4.9.0.5" date 05/09/2019
 bios0: PC Engines apu4
 acpi0 at bios0: rev 2
 ```
 
-Debian:
+Or from Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.4 04/03/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.5 05/09/2019
+
 ```
 
 # Installing the OS
@@ -243,7 +252,7 @@ Press `F10` at boot and select the USB disk.
 
 ## OpenBSD
 
-First set the serial console parameters:
+Set the serial console parameters:
 
 ```console
 Booting from Hard Disk...
@@ -333,7 +342,7 @@ The auto-allocated layout for sd0 is:
   k:            63.4G        101554720  4.2BSD   2048 16384     1 # /home
 ```
 
-**Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the entire disk.
+**Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
 
 Select "Auto layout" to continue:
 
@@ -420,7 +429,7 @@ Press `Control-X` to continue booting and you should see console output.
 
 ## OpenBSD
 
-Log in as `root` and install any [pending updates](https://man.openbsd.org/syspatch) (unless already following -current):
+Log in as `root` and install any [pending updates](https://man.openbsd.org/syspatch), unless already [following -current](https://www.openbsd.org/faq/current.html):
 
 ```console
 $ syspatch -v
