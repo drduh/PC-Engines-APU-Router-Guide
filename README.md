@@ -1,4 +1,4 @@
-This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and much more.
+This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
 
 I am **not** responsible for anything you do by following any part of this guide!
 
@@ -673,7 +673,7 @@ If using a [YubiKey](https://github.com/drduh/YubiKey-Guide), copy its public ke
 $ ssh-add -L | awk '{print $1" "$2}' | xclip
 ```
 
-Or generate new key on the client and copy it to clipboard:
+Or generate a new SSH key on the client and copy it to clipboard:
 
 ```console
 $ ssh-keygen -f ~/.ssh/pcengines -C 'sysadm'
@@ -683,7 +683,7 @@ Enter same passphrase again:
 Your identification has been saved in .ssh/pcengines.
 Your public key has been saved in .ssh/pcengines.pub.
 
-$ cat ~/.ssh/pcengines.pub | xclip
+$ xclip ~/.ssh/pcengines.pub
 ```
 
 On the APU, over the serial connection, as the primary user (e.g., `sysadm` - *not* `root`), configure SSH to accept that key by pasting it into `~/.ssh/authorized_keys`:
@@ -914,10 +914,10 @@ See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or u
 
 ```console
 $ doas mkdir /etc/pf
-$ doas curl -Lfvo /etc/pf.conf https://raw.githubusercontent.com/drduh/config/master/pf/pf.conf
-$ doas curl -Lfvo /etc/pf/blocklist https://raw.githubusercontent.com/drduh/config/master/pf/blocklist
-$ doas curl -Lfvo /etc/pf/martians https://raw.githubusercontent.com/drduh/config/master/pf/martians
-$ doas curl -Lfvo /etc/pf/private https://raw.githubusercontent.com/drduh/config/master/pf/private
+
+$ doas cp config/pf/pf.conf /etc/pf.conf
+
+$ doas cp config/pf/blocklist config/pf/martians config/pf/private /etc/pf/
 ```
 
 Turn PF off and back on again:
@@ -958,36 +958,25 @@ Apply the firewall rules on boot:
 $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 ```
 
-# Web filtering
+# Privoxy
 
-[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs.
-
-It can be used in combination with [Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) to block or replace ads/content with custom pages and images.
+[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs to block ads, upgrade HTTP connections, and more.
 
 ## Debian
 
-Install Privoxy and Lighttpd with magnet mod:
+Install Privoxy:
 
 ```console
-$ sudo apt-get -y install privoxy lighttpd lighttpd-mod-magnet
+$ sudo apt-get -y install privoxy
 ```
 
-Use my configurations and edit them to your needs:
-
-* [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config)
-* [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action)
-* [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf)
-* [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau)
+Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
 
 ```console
-$ sudo cp config/privoxy/config /etc/privoxy
-$ sudo cp config/privoxy/user.action /etc/privoxy/
-
-$ sudo cp config/lighttpd/lighttpd.conf /etc/lighttpd
-$ sudo cp config/lighttpd/magnet.luau /etc/lighttpd
+$ sudo cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
 ```
 
-Restart both services and check their logs:
+Restart the service and check the log:
 
 ```console
 $ sudo service privoxy restart
@@ -999,11 +988,115 @@ Info: Listening on port 8118 on IP address 10.8.1.1
 Info: Listening on port 8118 on IP address 172.16.1.1
 Request: example.com/
 Crunch: Redirected: http://bbc.com/
+```
 
+# Lighttpd
+
+[Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) makes for a highly capable Web server which can be used to replace ad images with custom content, upload and share content on the local network, act as a captive portal, and more.
+
+## Debian
+
+Install Lighttpd with ModMagnet:
+
+```console
+$ sudo apt-get -y install lighttpd lighttpd-mod-magnet
+```
+
+Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
+
+```console
+$ sudo cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
+```
+
+Restart the service and check the log:
+
+```console
 $ sudo service lighttpd restart
 
 $ sudo cat /var/log/lighttpd/error.log
 2019-01-01 12:00:00: (log.c.217) server started
+```
+
+# DNSCrypt
+
+Download the Minisign [source code](https://github.com/jedisct1/minisign/releases/latest), build and install it:
+
+```console
+$ sudo apt-get install -y libsodium-dev pkg-config cmake
+
+$ curl -o minisign-0.8.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.8.tar.gz
+
+$ tar xf minisign-0.8.tar.gz
+
+$ cd minisign-0.8
+
+$ mkdir build
+
+$ cd build
+
+$ cmake ..
+
+$ make
+
+$ sudo make install
+```
+
+Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/jedisct1/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
+
+```console
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz
+
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz.minisig
+
+$ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+Signature and comment signature verified
+Trusted comment: timestamp:1559606190   file:dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz
+
+$ tar xf dnscrypt-proxy*gz
+
+$ cp config/dnscrypt-proxy.toml linux-x86_64/
+
+$ cd linux-x86_64
+
+$ vim dnscrypt-proxy.toml
+```
+
+**Optional** Download and configure a hosts blacklist:
+
+```console
+$ git clone https://github.com/jedisct1/dnscrypt-proxy
+
+$ cd dnscrypt-proxy/utils/generate-domains-blacklists
+
+$ python generate-domains-blacklist.py > blacklist-$(date +%F).txt
+
+$ cp blacklist-$(date +%F).txt ~/linux-x86_64/blacklist.txt
+```
+
+Start the service manually - check `dnscrypt.log` for errors:
+
+```console
+$ ./dnscrypt-proxy
+```
+
+Once everything is working as expected, install and start dnscrypt-proxy as a service:
+
+```console
+$ sudo ./dnscrypt-proxy -service install
+
+$ sudo ./dnscrypt-proxy -service start
+
+$ tail -f dnscrypt.log
+[NOTICE] dnscrypt-proxy 2.0.25
+[NOTICE] Loading the set of blocking rules from [blacklist.txt]
+[NOTICE] Service started
+[NOTICE] Loading the set of forwarding rules from [forwarding-rules.txt]
+[NOTICE] Loading the set of IP blocking rules from [ip-blacklist.txt]
+[NOTICE] Now listening to 127.0.0.1:4200 [UDP]
+[NOTICE] Now listening to 127.0.0.1:4200 [TCP]
+[NOTICE] [abc] OK (DNSCrypt) - rtt: 12ms
+[NOTICE] Server with the lowest initial latency: abc (rtt: 12ms)
+[NOTICE] dnscrypt-proxy is ready - live servers: 1
 ```
 
 # Security and maintenance
@@ -1011,14 +1104,14 @@ $ sudo cat /var/log/lighttpd/error.log
 To confirm the firewall is configured correctly, run a port scan from an external host:
 
 ```console
-$ nmap -v -A -T4 1.2.3.4 -Pn
+$ nmap -v -A -T4 192.168.1.1 -Pn
 ```
 
 So long as no services are exposed to the Internet, the risk of *remote* compromise is minimal.
 
-Install a USB camera and configure [Motion](https://motion-project.github.io/) to monitor and detect physical access.
+Install a USB camera and configure [Motion](https://motion-project.github.io/) to detect and monitor physical access.
 
-It may also be possible to increase system entropy with an external source like [OneRNG](http://onerng.info/).
+Increase system entropy with a hardware device like [OneRNG](http://onerng.info/).
 
 ## OpenBSD
 
