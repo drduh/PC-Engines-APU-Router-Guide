@@ -22,25 +22,19 @@ This guide should work on any PC Engines APU model. Here is a suggested parts li
 
 | Part | Description | Cost
 |------|-------------|------
-| [apu4c4](https://pcengines.ch/apu4c4.htm) | apu4c4 system board | $138.00
-| [case1d2bluu](https://pcengines.ch/case1d2bluu.htm) | Enclosure 3 LAN, blue | $10.00
-| [ac12vus2](https://pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.40
+| [apu4c4](https://pcengines.ch/apu4c4.htm) | apu4c4 system board | $117.50
+| [case1d2bluu](https://pcengines.ch/case1d2bluu.htm) | Enclosure 3 LAN, blue | $9.40
+| [ac12vus2](https://pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.10
 | [msata16g](https://pcengines.ch/msata16g.htm) | SSD M-Sata 16GB MLC, Phison S11 | $15.50
 | [wle200nx](https://pcengines.ch/wle200nx.htm) | Compex WLE200NX miniPCI express card | $19.00
-| 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $3.00
+| 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $2.70
 | 2 x [antsmadb](https://pcengines.ch/antsmadb.htm) | Antenna reverse SMA dual band | $4.10
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
 ## Assembly
 
-Before starting, read the relevant APU series manual:
-
-* [APU2](https://www.pcengines.ch/pdf/apu2.pdf)
-* [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
-* [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
-
-Clear an area to work. Unpack all the materials. Follow [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
+Clear an area to work and unpack all the materials. Follow the [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
 
 Attach the mSATA disk and miniPCI wireless adapter in their respective slots.
 
@@ -53,47 +47,13 @@ Attach the mSATA disk and miniPCI wireless adapter in their respective slots.
 
 Power on the board. To avoid arcing, plug in the DC jack first, then plug the adapter into mains.
 
-By default, a memory test should run, and you should hear the board make a loud "beep" noise. If not, reboot and press `F10` to select `Payload [memtest]` and complete at least one pass.
+Press `F10` during boot and select `Payload [memtest]` to complete at least one pass.
 
-# Installer preparation
+See the relevant APU series manual for detailed board information:
 
-Use another computer to prepare an installer for either OpenBSD or Debian.
-
-Insert a USB disk. Run `dmesg` to identify its label.
-
-## OpenBSD
-
-Download the installation image - [`amd65/install64.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - and copy the file to the USB disk:
-
-On OpenBSD:
-
-```console
-$ doas dd if=install65.fs of=/dev/rsd2c bs=1m
-```
-
-On Linux:
-
-```console
-$ sudo dd if=install65.fs of=/dev/sdd bs=1M
-```
-
-## Debian
-
-Download the network installation image - [`amd64/debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - and copy the file to the USB disk:
-
-On OpenBSD:
-
-```console
-$ doas dd if=debian-9.9.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
-```
-
-On Linux:
-
-```console
-$ sudo dd if=debian-9.9.0-amd64-netinst.iso of=/dev/sdd bs=1M
-```
-
-Unplug the USB disk and plug it into the APU.
+* [APU2](https://www.pcengines.ch/pdf/apu2.pdf)
+* [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
+* [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
 
 # Connect over serial
 
@@ -123,26 +83,28 @@ Make note of the BIOS version displayed briefly during boot.
 
 # Updating firmware
 
-If the firmware version is [out of date](https://pcengines.github.io/), download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest BIOS release.
+Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/); download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest release.
 
-**Note** Recent firmware version may require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
+**Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
-Get the signing key to verify file integrity:
+Get the signing key using one of the following commands:
 
 ```console
 $ gpg --keyserver hkps://keys.gnupg.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
-```
 
-Or:
+$ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
 
-```console
 $ gpg --keyserver hkps://pool.sks-keyservers.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
 gpg: key 0xBCBD680B66346D19: 1 signature not checked due to a missing key
 gpg: key 0xBCBD680B66346D19: public key "PC Engines Open Source Firmware Release 4.9 Signing Key" imported
 gpg: no ultimately trusted keys found
 gpg: Total number processed: 1
 gpg:               imported: 1
+```
 
+Verify file integrity - look for "Good signature" in the output:
+
+```console
 $ gpg apu4*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
 gpg: assuming signed data in 'apu4_v4.9.0.5.SHA256'
@@ -245,6 +207,80 @@ $ sudo dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.5 05/09/2019
 
 ```
+
+# Prepare OS installer
+
+Use another computer to prepare an installer for either OpenBSD or Debian.
+
+## OpenBSD
+
+Download the installation image - [`amd64/install65.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - and copy the file to the USB disk:
+
+On OpenBSD:
+
+```console
+$ doas dd if=install65.fs of=/dev/rsd2c bs=1m
+```
+
+On Linux:
+
+```console
+$ sudo dd if=install65.fs of=/dev/sdd bs=1M
+```
+
+## Debian
+
+Download the network installation image - [`debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/), as well as `SHA512SUMS` and `SHA512SUMS.sign` files.
+
+Verify the signatures file:
+
+$ gpg SHA512SUMS.sign
+gpg: assuming signed data in 'SHA512SUMS'
+gpg: Signature made Sat Apr 27 11:45:02 2019 PDT
+gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
+gpg: Can't check signature: No public key
+
+$ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv DF9B9C49EAA9298432589D76DA87E80D62
+94BE9B
+gpg: key 0xDA87E80D6294BE9B: 63 signatures not checked due to missing keys
+gpg: key 0xDA87E80D6294BE9B: public key "Debian CD signing key <debian-cd@lists.debian.org>" i
+mported
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   3  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 3u
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+$ gpg SHA512SUMS.sign
+gpg: Signature made Sat Apr 27 11:45:02 2019 PDT
+gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
+gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
+
+$ sha512 debian-9.9.0-amd64-netinst.iso
+SHA512 (debian-9.9.0-amd64-netinst.iso) = 42d9818abc4a08681dc0638f07e7aeb35d0c44646ab1e5b05a31a71d76c99da52b6192db9a3e852171ac78c2ba6b110b337c0b562c7be3d32e86a105023a6a0c
+
+$ grep debian-9.9.0-amd64-netinst.iso SHA512SUMS
+42d9818abc4a08681dc0638f07e7aeb35d0c44646ab1e5b05a31a71d76c99da52b6192db9a3e852171ac78c2ba6b110b337c0b562c7be3d32e86a105023a6a0c  debian-9.9.0-amd64-netinst.iso
+```
+
+Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
+
+On OpenBSD:
+
+```console
+$ doas dd if=debian-9.9.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+```
+
+On Linux:
+
+```console
+$ sudo dd if=debian-9.9.0-amd64-netinst.iso of=/dev/sdd bs=1M
+```
+
+Unplug the USB disk and plug it into the APU.
+
 
 # Installing the OS
 
@@ -382,11 +418,15 @@ At the install menu, press `Tab` to edit boot options and replace `quiet` with:
 console=ttyS0,115200n8
 ```
 
-Proceed through the installer, selecting *Guided - use entire disk* as the partioning method. Be sure to select the SSD rather than the USB disk as the installation target.
+Select a network adapter - `enp1s0` is the interface closest to the serial port.
 
-Select the option to store `/var`, `/tmp` and `/home` on separate partitions [if possible](https://www.debian.org/releases/stable/armel/apcs03.html.en).
+Proceed through the installer, selecting `Guided - use entire disk` as the partioning method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
 
-Select `/dev/sda` or equivalent SSD device as the GRUB loader target.
+Select `Separate /home, /var, and /tmp partitions` as the [partitioning scheme](https://www.debian.org/releases/stable/armel/apcs03.html.en).
+
+During `Software selection` - unselect everything except SSH server.
+
+Select `/dev/sda` as the GRUB loader target.
 
 # First boot
 
@@ -460,7 +500,7 @@ Log out as `root` when finished.
 
 Log in as `root` to get started.
 
-Update GRUB by editing `/etc/default/grub` and replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
+Update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
 root@pcengines:~# update-grub2
@@ -483,7 +523,7 @@ root@pcengines:~# apt-get -y install \
     man-db jmtpfs file htop lshw less
 ```
 
-**Optional** Change the default login shell to Zsh:
+**Optional** Change the default login shell to Zsh for the primary user:
 
 ```
 # chsh -s /usr/bin/zsh sysadm
@@ -528,7 +568,7 @@ root@pcengines:~# lshw -C network | grep "logical name"
        logical name: enp1s0
        logical name: enp2s0
        logical name: enp3s0
-       logical name: wlp4s0
+       logical name: wlp5s0
 
 user@localhost$ sudo lshw -C network | grep "logical name"
        logical name: eno1
@@ -545,7 +585,7 @@ netmask 255.255.255.0
 gateway 10.8.1.1
 ```
 
-Where `enp1s0` is the Ethernet port nearest to the serial port.
+Where `enp2s0` is the network interface one port away from the serial port.
 
 Restart networking and bring up the interface:
 
@@ -590,8 +630,8 @@ PING 10.8.1.1 (10.8.1.1): 56 data bytes
 To configure the wireless interface, edit `/etc/network/interfaces` on the APU to include:
 
 ```
-auto wlp4s0
-iface wlp4s0 inet static
+auto wlp5s0
+iface wlp5s0 inet static
 address 192.168.1.1
 netmask 255.255.255.0
 hostapd /etc/hostapd.conf
@@ -635,7 +675,7 @@ On the APU, over the serial connection, as the primary user (e.g., `sysadm` - *n
 
 ```console
 $ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
-[Paste clipboard contents using the middle mouse button]
+[Paste clipboard contents using the middle mouse button or Shift-Insert]
 [Then press Control-D to save]
 ```
 
@@ -677,9 +717,11 @@ sysadm@pcengines~ %
 $ git clone https://github.com/drduh/config
 ```
 
+The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting.
+
 # DHCP and DNS
 
-[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) can be used to provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and DNS.
+[Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) will provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and handle DNS for the local network(s).
 
 Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) with blocklists and configure to your needs:
 
@@ -715,7 +757,7 @@ Restart the service and enable it on boot:
 ```console
 $ sudo service dnsmasq restart
 
-$ sudo update-rc.d dnsmasq enable
+$ sudo systemctl enable dnsmasq
 ```
 
 # Wireless
@@ -760,48 +802,68 @@ Ensure hostapd starts:
 $ sudo hostapd -dd /etc/hostapd.conf
 ```
 
-If there are any syntax errors, you may need a newer version of hostapd:
+If there are any syntax errors, download a newer version of hostapd:
 
 ```console
-$ curl -O https://w1.fi/releases/hostapd-2.7.tar.gz
+$ curl -O https://w1.fi/releases/hostapd-2.8.tar.gz
 
-$ sha256sum hostapd-2.7.tar.gz
+$ sha256sum hostapd-2.*
 21b0dda3cc3abe75849437f6b9746da461f88f0ea49dd621216936f87440a141  hostapd-2.7.tar.gz
+929f522be6eeec38c53147e7bc084df028f65f148a3f7e4fa6c4c3f955cee4b0  hostapd-2.8.tar.gz
 
-$ tar xf hostapd-2.7.tar.gz
+$ grep hostapd config/hashes.csv
+hostapd-2.7.tar.gz,21b0dda3cc3abe75849437f6b9746da461f88f0ea49dd621216936f87440a141
+hostapd-2.8.tar.gz,929f522be6eeec38c53147e7bc084df028f65f148a3f7e4fa6c4c3f955cee4b0
 
-$ cd hostapd-2.7/hostapd
+$ tar xf hostapd-2.8.tar.gz
+
+$ cd hostapd-2.8/hostapd
 
 $ sudo apt-get install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
+```
 
+Edit the build configuration to enable features:
+
+```console
 $ cp defconfig .config
 
-$ make -sj8
+$ vim .config
+
+# Uncomment these lines:
+CONFIG_ACS=y
+CONFIG_IEEE80211N=y
+CONFIG_IEEE80211AC=y
+```
+
+Make, install and test the new version of hostapd:
+
+```console
+$ make -sj4
 
 $ sudo make install
 
 $ hostapd -v
-hostapd v2.7
+hostapd v2.8
 
 $ sudo hostapd -d /etc/hostapd.conf
 Configuration file: /etc/hostapd.conf
-wlp4s0: interface state UNINITIALIZED->COUNTRY_UPDATE
+wlp5s0: interface state UNINITIALIZED->COUNTRY_UPDATE
 ACS: Automatic channel selection started, this may take a bit
-wlp4s0: interface state COUNTRY_UPDATE->ACS
-wlp4s0: ACS-STARTED
-wlp4s0: ACS-COMPLETED freq=5220 channel=44
-Using interface wlp4s0 with hwaddr ca:9c:bc:8a:c7:5b and ssid "foo"
-wlp4s0: interface state ACS->ENABLED
-wlp4s0: AP-ENABLED
-wlp4s0: STA c7:2d:df:b0:20:62 IEEE 802.11: authenticated
-wlp4s0: STA c7:2d:df:b0:20:62 IEEE 802.11: associated (aid 1)
-wlp4s0: AP-STA-CONNECTED c7:2d:df:b0:20:62
+wlp5s0: interface state COUNTRY_UPDATE->ACS
+wlp5s0: ACS-STARTED
+wlp5s0: ACS-COMPLETED freq=5220 channel=44
+Using interface wlp5s0 with hwaddr ca:9c:bc:8a:c7:5b and ssid "foo"
+wlp5s0: interface state ACS->ENABLED
+wlp5s0: AP-ENABLED
+wlp5s0: STA c7:2d:df:b0:20:62 IEEE 802.11: authenticated
+wlp5s0: STA c7:2d:df:b0:20:62 IEEE 802.11: associated (aid 1)
+wlp5s0: AP-STA-CONNECTED c7:2d:df:b0:20:62
 ```
 
 **Note** You may need to manually assign the interface an address:
 
 ```console
-$ sudo ifconfig wlp4s0 192.168.1.1
+$ sudo ifconfig wlp5s0 192.168.1.1
 ```
 
 # IP forwarding
