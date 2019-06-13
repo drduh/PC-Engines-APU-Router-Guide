@@ -107,15 +107,15 @@ Verify file integrity - look for "Good signature" in the output:
 ```console
 $ gpg apu4*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.9.0.5.SHA256'
-gpg: Signature made Thu May  9 02:52:11 2019 PDT
+gpg: assuming signed data in 'apu4_v4.9.0.6.SHA256'
+gpg: Signature made Tue Jun 11 00:16:15 2019 PDT
 gpg:                using RSA key F78F1CBC219338BB034008D7BCBD680B66346D19
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.9 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
 
-$ shasum -a256 apu4_v4.9.0.5.rom | grep $(cat apu4_v4.9.0.5.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.9.0.6.rom || sha256 apu4_v4.9.0.6.rom | grep $(cat apu4_v4.9.0.6.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -135,7 +135,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.9.0.5.rom /mnt/usb
+$ sudo cp -v apu4_v4.9.0.6.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -155,11 +155,11 @@ Select boot device:
 4. Payload [memtest]
 ```
 
-Check the current BIOS version:
+Check the current version:
 
 ```console
 root@pcengines:~# dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.8.0.7 12/03/2018
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.5 05/09/2019
 ```
 
 Save the existing version and write the new one:
@@ -172,7 +172,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.5.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.6.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -182,29 +182,29 @@ Verifying flash... VERIFIED.
 
 Unplug the USB disk and `reboot`.
 
-Verify the BIOS version by checking serial output during boot:
+Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190905
-BIOS version v4.9.0.5
+coreboot build 20190806
+BIOS version v4.9.0.6
 ```
 
-Or from OpenBSD:
+From OpenBSD:
 
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfea8020 (12 entries)
-bios0: vendor coreboot version "v4.9.0.5" date 05/09/2019
+bios0: vendor coreboot version "v4.9.0.6" date 06/08/2019
 bios0: PC Engines apu4
 acpi0 at bios0: rev 2
 ```
 
-Or from Debian:
+From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.5 05/09/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.6 06/08/2019
 
 ```
 
@@ -214,7 +214,21 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install65.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - and copy the file to the USB disk:
+Download the installation image - [`amd64/install65.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/SHA256.sig) files.
+
+Verify the signatures file and hash of the installation image:
+
+```console
+$ cat /etc/signify/openbsd-65-base.pub
+untrusted comment: openbsd 6.5 base public key
+RWSZaRmt1LEQT9CtPygf9CvONu8kYPTlVEJdysNoUR62/NkeWgdkc3zY
+
+$ signify -C -p /etc/signify/openbsd-65-base.pub -x SHA256.sig install65.fs
+Signature Verified
+install65.fs: OK
+```
+
+Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
 
 On OpenBSD:
 
@@ -230,10 +244,11 @@ $ sudo dd if=install65.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the network installation image - [`debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/), as well as `SHA512SUMS` and `SHA512SUMS.sign` files.
+Download the network installation image - [`debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
-Verify the signatures file:
+Verify the signatures file and hash of the installation image:
 
+```console
 $ gpg SHA512SUMS.sign
 gpg: assuming signed data in 'SHA512SUMS'
 gpg: Signature made Sat Apr 27 11:45:02 2019 PDT
