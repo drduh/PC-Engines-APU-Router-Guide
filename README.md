@@ -180,6 +180,19 @@ Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
 ```
 
+To check previously saved files:
+
+```console
+root@pcengines:/media/SYSLINUX# sha1sum apu4*
+9a8e47e04c88c914e596efdf74a44518fb3b32f0  apu4.rom.2019-04-15
+9c1fe2eba3bc3558256538bc1d7485b29b5ce57d  apu4.rom.2019-05-23
+7cc9943d2501a635bb93232f185cef18d58bc408  apu4.rom.2019-06-15
+9a8e47e04c88c914e596efdf74a44518fb3b32f0  apu4_v4.9.0.1.rom
+9c1fe2eba3bc3558256538bc1d7485b29b5ce57d  apu4_v4.9.0.4.rom
+7cc9943d2501a635bb93232f185cef18d58bc408  apu4_v4.9.0.5.rom
+b8db83d5ff0acea32a9c8c4b1ecaa125a4482446  apu4_v4.9.0.6.rom
+```
+
 Unplug the USB disk and `reboot`.
 
 Verify the version by checking serial output during boot:
@@ -205,7 +218,6 @@ From Debian:
 ```console
 $ sudo dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.6 06/08/2019
-
 ```
 
 # Prepare OS installer
@@ -244,14 +256,13 @@ $ sudo dd if=install65.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the network installation image - [`debian-9.9.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-10.0.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: assuming signed data in 'SHA512SUMS'
-gpg: Signature made Sat Apr 27 11:45:02 2019 PDT
+gpg: Signature made Sat Jul  6 18:49:59 2019 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
@@ -266,18 +277,18 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Apr 27 11:45:02 2019 PDT
+gpg: Signature made Sat Jul  6 18:49:59 2019 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 
-$ sha512 debian-9.9.0-amd64-netinst.iso
-SHA512 (debian-9.9.0-amd64-netinst.iso) = 42d9818abc4a08681dc0638f07e7aeb35d0c44646ab1e5b05a31a71d76c99da52b6192db9a3e852171ac78c2ba6b110b337c0b562c7be3d32e86a105023a6a0c
+$ sha512 debian-10.0.0-amd64-netinst.iso
+SHA512 (debian-10.0.0-amd64-netinst.iso) = d808985468652393cf31d30fe7d6f60f5041337980b25dd00f2ab9553248b564cf38174c8251f410ddbe221e57fefc78849f9879141e25a5dfb31d8043fccc5c
 
-$ grep debian-9.9.0-amd64-netinst.iso SHA512SUMS
-42d9818abc4a08681dc0638f07e7aeb35d0c44646ab1e5b05a31a71d76c99da52b6192db9a3e852171ac78c2ba6b110b337c0b562c7be3d32e86a105023a6a0c  debian-9.9.0-amd64-netinst.iso
+$ grep debian-10.0.0-amd64-netinst.iso SHA512SUMS
+d808985468652393cf31d30fe7d6f60f5041337980b25dd00f2ab9553248b564cf38174c8251f410ddbe221e57fefc78849f9879141e25a5dfb31d8043fccc5c  debian-10.0.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -285,13 +296,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=debian-9.9.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-10.0.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=debian-9.9.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-10.0.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -506,7 +517,7 @@ permit nopass keepenv root
 Install any needed software:
 
 ```console
-$ pkg_add vim zsh curl pftop vnstat
+$ pkg_add vim zsh curl free pftop vnstat
 ```
 
 Log out as `root` when finished.
@@ -910,12 +921,12 @@ $ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
 ## OpenBSD
 
-See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf/](https://github.com/drduh/config/blob/master/pf/) files:
+See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf](https://github.com/drduh/config/blob/master/pf/) files:
 
 ```console
 $ doas mkdir /etc/pf
 
-$ doas cp config/pf/pf.conf /etc/pf.conf
+$ doas cp config/pf/pf.conf /etc/
 
 $ doas cp config/pf/blocklist config/pf/martians config/pf/private /etc/pf/
 ```
@@ -943,13 +954,13 @@ Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
 
 ```console
-$ cp config/scripts/iptables.sh firewall.sh
+$ cp config/scripts/iptables.sh /etc/
 
-$ vim firewall.sh
+$ sudo vim /etc/iptables.sh
 
-$ chmod +x firewall.sh
+$ sudo chmod +x /etc/iptables.sh
 
-$ sudo ./firewall.sh
+$ sudo /etc/iptables.sh
 ```
 
 Apply the firewall rules on boot:
@@ -1073,10 +1084,10 @@ $ python generate-domains-blacklist.py > blacklist-$(date +%F).txt
 $ cp blacklist-$(date +%F).txt ~/linux-x86_64/blacklist.txt
 ```
 
-Start the service manually - check `dnscrypt.log` for errors:
+Start the program and check `dnscrypt.log` for success or errors:
 
 ```console
-$ ./dnscrypt-proxy
+$ sudo ./dnscrypt-proxy
 ```
 
 Once everything is working as expected, install and start dnscrypt-proxy as a service:
@@ -1101,45 +1112,52 @@ $ tail -f dnscrypt.log
 
 # Security and maintenance
 
-To confirm the firewall is configured correctly, run a port scan from an external host:
+To confirm the firewall is configured correctly, run port scans from an internal and external hosts, for example:
 
 ```console
 $ nmap -v -A -T4 192.168.1.1 -Pn
 ```
 
-So long as no services are exposed to the Internet, the risk of *remote* compromise is minimal.
+To view blocked packets, tail the system message buffer on Linux:
+
+```console
+$ sudo dmesg -wH
+[Jul 1 12:00] DROPIN>IN=enp1s0 OUT= MAC=00:00:00:00:00:00:00:00:00:00:00:00:00:00 SRC=192.168.1.10 DST=192.168.1.1 LEN=64 TOS=0x00 PREC=0x00 TTL=64 ID=29501 DF PROTO=TCP SPT=43228 DPT=554 WINDOW=16384 RES=0x00 SYN URGP=0
+[...]
+```
+
+On OpenBSD, blocked packets will be sent to the PF log interface:
+
+```console
+$ doas tcpdump -ni pflog0
+tcpdump: listening on pflog0, link-type PFLOG
+12:00:00.000000 192.168.1.10.40770 > 192.168.1.1.1720: S 3331100898:3331180098(0) win 29200 <mss 1460,sackOK,timestamp 232580000 0,nop,wscale 7> (DF)
+[...]
+```
 
 Install a USB camera and configure [Motion](https://motion-project.github.io/) to detect and monitor physical access.
 
-Increase system entropy with a hardware device like [OneRNG](http://onerng.info/).
+(Linux only) Increase system entropy with a hardware device like [OneRNG](http://onerng.info/).
 
 ## OpenBSD
 
-Check open ports with `doas fstat | grep net` or `doas netstat -a -n -p udp -p tcp`.
+Check open network ports with `doas fstat | grep net` and `doas netstat -a -n -p udp -p tcp`.
 
 Check running processes and sessions with `ps -A` and `last`.
 
 Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
 
-OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates.
-
-Mount `/tmp` as `tmpfs` (in memory only) by replacing the tmp partition line in `/etc/fstab` with the following line. Be sure to increase the size >1G for system upgrades!
-
-```
-swap /tmp mfs rw,noexec,nosuid,nodev,-s=256M 0 0
-```
+OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates by periodically running `doas sysupgrade -s`.
 
 Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.openbsd.org/OpenBSD-current/man8/sensorsd.8).
 
 ## Debian
 
-Check open ports and listening programs with `sudo lsof -Pni` or `sudo netstat -npl`.
+Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat -npl`.
 
 Check running processes and logged-in users with `ps -eax` and `last -F`.
 
-Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent).
-
-Run `sudo apt-get update && sudo apt-get upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and run `sudo apt update && sudo apt upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
 
