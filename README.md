@@ -45,7 +45,7 @@ Attach the mSATA disk and miniPCI wireless adapter in their respective slots.
 1. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
 1. Touch the I-PEX connector of the pigtail to the mounting hole (discharge), then plug onto the radio card (this is where the pre-requisite patience comes in.
 
-Power on the board. To avoid arcing, plug in the DC jack first, then plug the adapter into mains.
+To avoid arcing, plug in the DC jack first, then plug the power adapter into mains.
 
 Press `F10` during boot and select `Payload [memtest]` to complete at least one pass.
 
@@ -77,9 +77,7 @@ Or use [minicom](https://linux.die.net/man/1/minicom):
 $ sudo minicom -D /dev/ttyUSB0
 ```
 
-Power up the APU, DC jack first.
-
-Make note of the BIOS version displayed briefly during boot.
+Power on the APU and make note of the firmware version displayed briefly during boot.
 
 # Updating firmware
 
@@ -107,15 +105,16 @@ Verify file integrity - look for "Good signature" in the output:
 ```console
 $ gpg apu4*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.9.0.6.SHA256'
-gpg: Signature made Tue Jun 11 00:16:15 2019 PDT
+gpg: assuming signed data in 'apu4_v4.10.0.0.SHA256'
+gpg: Signature made Mon Aug 12 04:24:23 2019 PDT
 gpg:                using RSA key F78F1CBC219338BB034008D7BCBD680B66346D19
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.9 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
 
-$ shasum -a256 apu4_v4.9.0.6.rom || sha256 apu4_v4.9.0.6.rom | grep $(cat apu4_v4.9.0.6.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.10.0.0.rom 2>/dev/null || sha256 apu4_v4.10.0.0.rom | grep
+$(cat apu4_v4.10.0.0.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -135,7 +134,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.9.0.6.rom /mnt/usb
+$ sudo cp -v apu4_v4.10.0.0.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -172,7 +171,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.9.0.6.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.0.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -199,25 +198,25 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190806
-BIOS version v4.9.0.6
+coreboot build 20190808
+BIOS version v4.10.0.0
 ```
 
 From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.7 @ 0xcfea8020 (12 entries)
-bios0: vendor coreboot version "v4.9.0.6" date 06/08/2019
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea7020 (12 entries)
+bios0: vendor coreboot version "v4.10.0.0" date 08/08/2019
 bios0: PC Engines apu4
-acpi0 at bios0: rev 2
+acpi0 at bios0: ACPI 4.0
 ```
 
 From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.6 06/08/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.0 08/08/2019
 ```
 
 # Prepare OS installer
@@ -831,19 +830,14 @@ $ sudo hostapd -dd /etc/hostapd.conf
 If there are any syntax errors, download a newer version of hostapd:
 
 ```console
-$ curl -O https://w1.fi/releases/hostapd-2.8.tar.gz
+$ curl -O https://w1.fi/releases/hostapd-2.9.tar.gz
 
-$ sha256sum hostapd-2.*
-21b0dda3cc3abe75849437f6b9746da461f88f0ea49dd621216936f87440a141  hostapd-2.7.tar.gz
-929f522be6eeec38c53147e7bc084df028f65f148a3f7e4fa6c4c3f955cee4b0  hostapd-2.8.tar.gz
+$ sha256sum hostapd-2.9.tar.gz
+881d7d6a90b2428479288d64233151448f8990ab4958e0ecaca7eeb3c9db2bd7  hostapd-2.9.tar.gz
 
-$ grep hostapd config/hashes.csv
-hostapd-2.7.tar.gz,21b0dda3cc3abe75849437f6b9746da461f88f0ea49dd621216936f87440a141
-hostapd-2.8.tar.gz,929f522be6eeec38c53147e7bc084df028f65f148a3f7e4fa6c4c3f955cee4b0
+$ tar xf hostapd-2.9.tar.gz
 
-$ tar xf hostapd-2.8.tar.gz
-
-$ cd hostapd-2.8/hostapd
+$ cd hostapd-2.9/hostapd
 
 $ sudo apt-get install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
 ```
@@ -869,7 +863,7 @@ $ make -sj4
 $ sudo make install
 
 $ hostapd -v
-hostapd v2.8
+hostapd v2.9
 
 $ sudo hostapd -d /etc/hostapd.conf
 Configuration file: /etc/hostapd.conf
@@ -944,7 +938,7 @@ pf enabled
 To inspect blocked traffic:
 
 ```console
-$ doas tcpdump -qni pflog0
+$ doas tcpdump -ni pflog0
 ```
 
 ## Debian
@@ -963,7 +957,7 @@ $ sudo chmod +x /etc/iptables.sh
 $ sudo /etc/iptables.sh
 ```
 
-Apply the firewall rules on boot:
+Save the firewall rules to apply them on boot:
 
 ```console
 $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
