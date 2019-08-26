@@ -113,8 +113,7 @@ gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
 
-$ shasum -a256 apu4_v4.10.0.0.rom 2>/dev/null || sha256 apu4_v4.10.0.0.rom | grep
-$(cat apu4_v4.10.0.0.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.10.0.0.rom 2>/dev/null || sha256 apu4_v4.10.0.0.rom | grep $(cat apu4_v4.10.0.0.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -124,6 +123,9 @@ Mount a USB disk and write the TinyCore image, copy the `.rom` file:
 $ curl -O https://pcengines.ch/file/apu2-tinycore6.4.img.gz
 
 $ gzip -d apu2-tinycore6.4.img.gz
+
+$ sha256sum apu2-tinycore6.4.img
+f5a20eeb01dfea438836e48cb15a18c5780194fed6bf21564fc7c894a1ac06d7  apu2-tinycore6.4.img
 
 $ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 511+0 records in
