@@ -85,35 +85,22 @@ Check for the latest firmware version at [pcengines.github.io](https://pcengines
 
 **Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
-Get the signing key using one of the following commands:
+Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.10-key.asc), then check the file signature:
 
 ```console
-$ gpg --keyserver hkps://keys.gnupg.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
+$ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
 
-$ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
-
-$ gpg --keyserver hkps://pool.sks-keyservers.net --recv 0xF78F1CBC219338BB034008D7BCBD680B66346D19
-gpg: key 0xBCBD680B66346D19: 1 signature not checked due to a missing key
-gpg: key 0xBCBD680B66346D19: public key "PC Engines Open Source Firmware Release 4.9 Signing Key" imported
-gpg: no ultimately trusted keys found
-gpg: Total number processed: 1
-gpg:               imported: 1
-```
-
-Verify file integrity - look for "Good signature" in the output:
-
-```console
 $ gpg apu4*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.10.0.0.SHA256'
-gpg: Signature made Mon Aug 12 04:24:23 2019 PDT
-gpg:                using RSA key F78F1CBC219338BB034008D7BCBD680B66346D19
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.9 Signing Key" [unknown]
+gpg: assuming signed data in 'apu4_v4.10.0.1.SHA256'
+gpg: Signature made Wed Sep 18 08:00:22 2019 PDT
+gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
+gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: F78F 1CBC 2193 38BB 0340  08D7 BCBD 680B 6634 6D19
+Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
 
-$ shasum -a256 apu4_v4.10.0.0.rom 2>/dev/null || sha256 apu4_v4.10.0.0.rom | grep $(cat apu4_v4.10.0.0.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.10.0.1.rom 2>/dev/null || sha256 apu4_v4.10.0.1.rom | grep $(cat apu4_v4.10.0.1.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -136,7 +123,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.10.0.0.rom /mnt/usb
+$ sudo cp -v apu4_v4.10.0.1.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -144,14 +131,14 @@ $ sudo umount /mnt/usb
 Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
 
 ```console
-SeaBIOS (version rel-1.12.1.1-0-g55d345f)
+SeaBIOS (version rel-1.12.1.3-0-g300e8b7)
 
 Press F10 key now for boot menu
 
 Select boot device:
 
 1. USB MSC Drive Samsung Flash Drive DUO 1100
-2. AHCI/0: SATA SSD ATA-11 Hard-Disk (111 GiBytes)
+2. AHCI/0: SB2 ATA-11 Hard-Disk (111 GiBytes)
 3. Payload [setup]
 4. Payload [memtest]
 ```
@@ -160,7 +147,7 @@ Check the current version:
 
 ```console
 root@pcengines:~# dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.9.0.5 05/09/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.0 08/08/2019
 ```
 
 Save the existing version and write the new one:
@@ -173,7 +160,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.0.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.1.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -200,8 +187,8 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190808
-BIOS version v4.10.0.0
+coreboot build 20191009
+BIOS version v4.10.0.1
 ```
 
 From OpenBSD:
@@ -209,7 +196,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea7020 (12 entries)
-bios0: vendor coreboot version "v4.10.0.0" date 08/08/2019
+bios0: vendor coreboot version "v4.10.0.1" date 09/10/2019
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -218,7 +205,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.0 08/08/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.1 09/10/2019
 ```
 
 # Prepare OS installer
@@ -1051,13 +1038,13 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/jedisct1/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.27/dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz
 
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz.minisig
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.27/dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz.minisig
 
-$ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+$ minisign -Vm dnscrypt-proxy-*27.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1559606190   file:dnscrypt-proxy-linux_x86_64-2.0.25.tar.gz
+Trusted comment: timestamp:1568048558   file:dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz
 
 $ tar xf dnscrypt-proxy*gz
 
@@ -1154,6 +1141,16 @@ Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat 
 Check running processes and logged-in users with `ps -eax` and `last -F`.
 
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and run `sudo apt update && sudo apt upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
+
+Install and enable [SELinux](https://wiki.debian.org/SELinux):
+
+```console
+$ sudo apt install selinux-basics selinux-policy-default
+
+$ sudo selinux-activate
+
+$ sudo reboot
+```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
 
