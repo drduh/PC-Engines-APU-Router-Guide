@@ -90,17 +90,17 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 ```console
 $ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
 
-$ gpg apu4*sig
+$ gpg apu*sig
 gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.10.0.1.SHA256'
-gpg: Signature made Wed Sep 18 08:00:22 2019 PDT
+gpg: assuming signed data in 'apu4_v4.10.0.2.SHA256'
+gpg: Signature made Thu Oct 10 04:10:06 2019 PDT
 gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
 
-$ shasum -a256 apu4_v4.10.0.1.rom 2>/dev/null || sha256 apu4_v4.10.0.1.rom | grep $(cat apu4_v4.10.0.1.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.10.0.2.rom 2>/dev/null || sha256 apu4_v4.10.0.2.rom | grep $(cat apu4_v4.10.0.2.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -123,7 +123,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.10.0.1.rom /mnt/usb
+$ sudo cp -v apu4_v4.10.0.2.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -147,7 +147,7 @@ Check the current version:
 
 ```console
 root@pcengines:~# dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.0 08/08/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.1 09/10/2019
 ```
 
 Save the existing version and write the new one:
@@ -160,7 +160,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.1.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.2.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -187,7 +187,7 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20191009
+coreboot build 20190810
 BIOS version v4.10.0.1
 ```
 
@@ -195,8 +195,8 @@ From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea7020 (12 entries)
-bios0: vendor coreboot version "v4.10.0.1" date 09/10/2019
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea8020 (12 entries)
+bios0: vendor coreboot version "v4.10.0.2" date 10/08/2019
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -205,7 +205,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.1 09/10/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.2 10/08/2019
 ```
 
 # Prepare OS installer
@@ -214,18 +214,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install65.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/install65.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.5/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install66.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/install66.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-65-base.pub
-untrusted comment: openbsd 6.5 base public key
-RWSZaRmt1LEQT9CtPygf9CvONu8kYPTlVEJdysNoUR62/NkeWgdkc3zY
+$ cat /etc/signify/openbsd-66-base.pub
+untrusted comment: openbsd 6.6 base public key
+RWSvK/c+cFe24BIalifKnqoqdvLlXfeZ9MIj3MINndNeKgyYw5PpcWGn
 
-$ signify -C -p /etc/signify/openbsd-65-base.pub -x SHA256.sig install65.fs
+$ signify -C -p /etc/signify/openbsd-66-base.pub -x SHA256.sig install66.fs
 Signature Verified
-install65.fs: OK
+install66.fs: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -233,24 +233,24 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install65.fs of=/dev/rsd2c bs=1m
+$ doas dd if=install66.fs of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install65.fs of=/dev/sdd bs=1M
+$ sudo dd if=install66.fs of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`debian-10.0.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-10.1.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Jul  6 18:49:59 2019 PDT
+gpg: Signature made Sun Sep  8 08:52:40 2019 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
@@ -265,18 +265,15 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Jul  6 18:49:59 2019 PDT
+gpg: Signature made Sun Sep  8 08:52:40 2019 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 
-$ sha512 debian-10.0.0-amd64-netinst.iso
-SHA512 (debian-10.0.0-amd64-netinst.iso) = d808985468652393cf31d30fe7d6f60f5041337980b25dd00f2ab9553248b564cf38174c8251f410ddbe221e57fefc78849f9879141e25a5dfb31d8043fccc5c
-
-$ grep debian-10.0.0-amd64-netinst.iso SHA512SUMS
-d808985468652393cf31d30fe7d6f60f5041337980b25dd00f2ab9553248b564cf38174c8251f410ddbe221e57fefc78849f9879141e25a5dfb31d8043fccc5c  debian-10.0.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-10.1.0-amd64-netinst.iso) SHA512SUMS
+23237b0a100a860b3dc7ffcfb5baae4bed5460ac5f3f2b929df3154f3319b9809055b695264586f60289cc6cb25077c12938cc612fee01756bfa779c87d5a315  debian-10.1.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -284,13 +281,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=debian-10.0.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-10.1.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=debian-10.0.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-10.1.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -308,19 +305,19 @@ Set the serial console parameters:
 Booting from Hard Disk...
 Using drive 0, partition 3.
 Loading......
-probing: pc0 com0 com1 com2 com3 mem[639K 3580M 496M a20=on]
+probing: pc0 com0 com1 com2 com3 mem[639K 3325M 752M a20=on]
 disk: hd0+ hd1+*
->> OpenBSD/amd64 BOOT 3.41
+>> OpenBSD/amd64 BOOT 3.45
 boot> stty com0 115200
 boot> set tty com0
-switching console to com>> OpenBSD/amd64 BOOT 3.34
+switching console to com>> OpenBSD/amd64 BOOT 3.45
 boot> [Press Enter]
 ```
 
 Select the Install option:
 
 ```console
-Welcome to the OpenBSD/amd64 6.4 installation program.
+Welcome to the OpenBSD/amd64 6.6 installation program.
 (I)nstall, (U)pgrade, (A)utoinstall or (S)hell? I
 ```
 
@@ -378,51 +375,48 @@ No valid MBR or GPT.
 Use (W)hole disk MBR, whole disk (G)PT or (E)dit? [whole] W
 Setting OpenBSD MBR partition to whole sd0...done.
 The auto-allocated layout for sd0 is:
-                 size           offset  fstype [fsize bsize   cpg]
+#                size           offset  fstype [fsize bsize   cpg]
   a:             1.0G               64  4.2BSD   2048 16384     1 # /
   b:             4.2G          2097216    swap
   c:           111.8G                0  unused
-  d:             4.0G         10939072  4.2BSD   2048 16384     1 # /tmp
-  e:            11.9G         19327648  4.2BSD   2048 16384     1 # /var
-  f:             2.0G         44351360  4.2BSD   2048 16384     1 # /usr
-  g:             1.0G         48545664  4.2BSD   2048 16384     1 # /usr/X11R6
-  h:            16.3G         50642816  4.2BSD   2048 16384     1 # /usr/local
-  i:             2.0G         84777504  4.2BSD   2048 16384     1 # /usr/src
-  j:             6.0G         88971808  4.2BSD   2048 16384     1 # /usr/obj
-  k:            63.4G        101554720  4.2BSD   2048 16384     1 # /home
+  d:             4.0G         10941664  4.2BSD   2048 16384     1 # /tmp
+  e:            11.9G         19330240  4.2BSD   2048 16384     1 # /var
+  f:             3.0G         44359136  4.2BSD   2048 16384     1 # /usr
+  g:             1.0G         50650592  4.2BSD   2048 16384     1 # /usr/X11R6
+  h:            16.2G         52747744  4.2BSD   2048 16384     1 # /usr/local
+  i:             2.0G         86698112  4.2BSD   2048 16384     1 # /usr/src
+  j:             6.0G         90892416  4.2BSD   2048 16384     1 # /usr/obj
+  k:            62.4G        103475328  4.2BSD   2048 16384     1 # /home
 ```
 
 **Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
 
-Select "Auto layout" to continue:
+Select "Auto layout" to continue, then Enter to finish disk setup.
 
 ```console
 Use (A)uto layout, (E)dit auto layout, or create (C)ustom layout? [a] A
-/dev/rsd0a: 1024.0MB in 2097152 sectors of 512 bytes
-6 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0k: 64883.7MB in 132881824 sectors of 512 bytes
-321 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0d: 4096.0MB in 8388576 sectors of 512 bytes
-21 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0f: 2048.0MB in 4194304 sectors of 512 bytes
-11 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0g: 1024.0MB in 2097152 sectors of 512 bytes
-6 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0h: 16667.3MB in 34134688 sectors of 512 bytes
-83 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0j: 6144.0MB in 12582912 sectors of 512 bytes
-31 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0i: 2048.0MB in 4194304 sectors of 512 bytes
-11 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
-/dev/rsd0e: 12218.6MB in 25023712 sectors of 512 bytes
-61 cylinder groups of 202.47MB, 12958 blocks, 25984 inodes each
+[...]
 Available disks are: sd1 sd2.
 Which disk do you wish to initialize? (or 'done') [done]
 ```
 
-Select a [mirror](https://www.openbsd.org/ftp.html) and complete the setup, then unplug the USB disk and reboot.
+Select a [mirror](https://www.openbsd.org/ftp.html) and start the installation:
 
-See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
+```console
+HTTP Server? (hostname, list#, 'done' or '?') cdn.openbsd.org
+Server directory? [pub/OpenBSD/6.6/amd64]
+
+Select sets by entering a set name, a file name pattern or 'all'. De-select
+sets by prepending a '-', e.g.: '-game*'. Selected sets are labelled '[X]'.
+    [X] bsd           [X] base66.tgz    [X] game66.tgz    [X] xfont66.tgz
+    [X] bsd.mp        [X] comp66.tgz    [X] xbase66.tgz   [X] xserv66.tgz
+    [X] bsd.rd        [X] man66.tgz     [X] xshare66.tgz
+Set name(s)? (or 'abort' or 'done') [done]
+Get/Verify SHA256.sig   100% |**************************|  2141       00:00
+Signature Verified
+```
+
+After installation is complete, unplug the USB disk and reboot. See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
 
 ## Debian
 
@@ -455,14 +449,14 @@ set tty com0
 
 ## Debian
 
-After the GRUB menu, output will get stuck at:
+After the GRUB menu, output may get stuck at:
 
 ```
-Loading Linux 4.9.0-6-amd64 ...
+Loading Linux 4.9.0-11-amd64 ...
 Loading initial ramdisk ...
 ```
 
-Reboot and press `e` at the GRUB menu to enter edit mode, scroll down and replace the word `quiet` with:
+If so, reboot and press `e` at the GRUB menu to enter edit mode, scroll down and replace the word `quiet` with:
 
 ```
 console=ttyS0,115200n8
@@ -519,8 +513,8 @@ Update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` wit
 ```console
 root@pcengines:~# update-grub2
 Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-4.9.0-8-amd64
-Found initrd image: /boot/initrd.img-4.9.0-8-amd64
+Found linux image: /boot/vmlinuz-4.9.0-11-amd64
+Found initrd image: /boot/initrd.img-4.9.0-11-amd64
 ```
 
 Install any pending updates or install software:
@@ -531,16 +525,15 @@ root@pcengines:~# apt-get update && apt-get -y upgrade
 root@pcengines:~# apt-get -y install \
     sudo ssh tmux lsof vim zsh git \
     dnsmasq privoxy hostapd \
-    iptables iptables-persistent \
     curl dnsutils ntp net-tools tcpdump whois \
     make autoconf gcc gnupg ca-certificates apt-transport-https \
-    man-db jmtpfs file htop lshw less
+    man-db jmtpfs htop lshw
 ```
 
 **Optional** Change the default login shell to Zsh for the primary user:
 
 ```
-# chsh -s /usr/bin/zsh sysadm
+root@pcengines:~# chsh -s /usr/bin/zsh sysadm
 ```
 
 # Configure network interfaces
@@ -785,7 +778,7 @@ Edit `/etc/hostname.athn0` to include:
 ```shell
 inet 192.168.1.1 255.255.255.0
 media autoselect mode 11n mediaopt hostap chan 11
-nwid NAME wpakey PASSWORD
+nwid NAME wpakey "PASSWORD"
 ```
 
 Restart networking:
@@ -1038,13 +1031,13 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/jedisct1/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.27/dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.28/dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz
 
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.27/dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz.minisig
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.28/dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz.minisig
 
-$ minisign -Vm dnscrypt-proxy-*27.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+$ minisign -Vm dnscrypt-proxy-*28.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1568048558   file:dnscrypt-proxy-linux_x86_64-2.0.27.tar.gz
+Trusted comment: timestamp:1570912700   file:dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz
 
 $ tar xf dnscrypt-proxy*gz
 
@@ -1081,9 +1074,10 @@ $ sudo ./dnscrypt-proxy -service install
 $ sudo ./dnscrypt-proxy -service start
 
 $ tail -f dnscrypt.log
-[NOTICE] dnscrypt-proxy 2.0.25
-[NOTICE] Loading the set of blocking rules from [blacklist.txt]
 [NOTICE] Service started
+[NOTICE] Network connectivity detected
+[NOTICE] Firefox workaround initialized
+[NOTICE] Loading the set of blocking rules from [blacklist.txt]
 [NOTICE] Loading the set of forwarding rules from [forwarding-rules.txt]
 [NOTICE] Loading the set of IP blocking rules from [ip-blacklist.txt]
 [NOTICE] Now listening to 127.0.0.1:4200 [UDP]
