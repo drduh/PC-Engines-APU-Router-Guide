@@ -91,16 +91,14 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 $ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
 
 $ gpg apu*sig
-gpg: WARNING: no command supplied.  Trying to guess what you mean ...
-gpg: assuming signed data in 'apu4_v4.10.0.2.SHA256'
-gpg: Signature made Thu Oct 10 04:10:06 2019 PDT
+gpg: Signature made Fri Nov  8 01:54:11 2019 PST
 gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
 
-$ shasum -a256 apu4_v4.10.0.2.rom 2>/dev/null || sha256 apu4_v4.10.0.2.rom | grep $(cat apu4_v4.10.0.2.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.10.0.3.rom 2>/dev/null || sha256 apu4_v4.10.0.3.rom | grep $(cat apu4_v4.10.0.3.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -123,7 +121,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.10.0.2.rom /mnt/usb
+$ sudo cp -v apu4_v4.10.0.3.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -160,7 +158,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.2.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.3.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -187,8 +185,9 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190810
-BIOS version v4.10.0.1
+coreboot build 20190711
+BIOS version v4.10.0.3
+
 ```
 
 From OpenBSD:
@@ -196,7 +195,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea8020 (12 entries)
-bios0: vendor coreboot version "v4.10.0.2" date 10/08/2019
+bios0: vendor coreboot version "v4.10.0.3" date 11/07/2019
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -205,7 +204,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.2 10/08/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.3 11/07/2019
 ```
 
 # Prepare OS installer
@@ -244,13 +243,13 @@ $ sudo dd if=install66.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the network installation image - [`debian-10.1.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-10.2.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sun Sep  8 08:52:40 2019 PDT
+gpg: Signature made Sat Nov 16 18:48:09 2019 PST
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
@@ -265,29 +264,40 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sun Sep  8 08:52:40 2019 PDT
+gpg: Signature made Sat Nov 16 18:48:09 2019 PST
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
-
-$ grep $(sha512 -q debian-10.1.0-amd64-netinst.iso) SHA512SUMS
-23237b0a100a860b3dc7ffcfb5baae4bed5460ac5f3f2b929df3154f3319b9809055b695264586f60289cc6cb25077c12938cc612fee01756bfa779c87d5a315  debian-10.1.0-amd64-netinst.iso
 ```
 
-Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
-
-On OpenBSD:
+OpenBSD:
 
 ```console
-$ doas dd if=debian-10.1.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ grep $(sha512 -q debian-10.2.0-amd64-netinst.iso) SHA512SUMS
+5495c8378b829df7386b9bac5bc701f7ad8b2843d088e8636c89549519cf176100eacb90121af3934a8c5229cbe7d2fd23342eda330d56fb45fb2d91f2117fb4  debian-10.2.0-amd64-netinst.iso
 ```
 
-On Linux:
+Linux:
 
 ```console
-$ sudo dd if=debian-10.1.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ grep $(sha512sum debian-10.2.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:5495c8378b829df7386b9bac5bc701f7ad8b2843d088e8636c89549519cf176100eacb90121af3934a8c5229cbe7d2fd23342eda330d56fb45fb2d91f2117fb4  debian-10.2.0-amd64-netinst.iso
+```
+
+Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
+
+OpenBSD:
+
+```console
+$ doas dd if=debian-10.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+```
+
+Linux:
+
+```console
+$ sudo dd if=debian-10.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -428,7 +438,7 @@ console=ttyS0,115200n8
 
 Select a network adapter - `enp1s0` is the interface closest to the serial port.
 
-Proceed through the installer, selecting `Guided - use entire disk` as the partioning method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
+Proceed through the installer, selecting `Guided - use entire disk` as the partition method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
 
 Select `Separate /home, /var, and /tmp partitions` as the [partitioning scheme](https://www.debian.org/releases/stable/armel/apcs03.html.en).
 
@@ -462,7 +472,7 @@ If so, reboot and press `e` at the GRUB menu to enter edit mode, scroll down and
 console=ttyS0,115200n8
 ```
     
-**Note** If arrow keys do not work in GRUB, try using emacs key bindings to navigate the text field:
+**Note** If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
 
 * `Control-B` to move left
 * `Control-F` to move right
@@ -524,10 +534,9 @@ root@pcengines:~# apt-get update && apt-get -y upgrade
 
 root@pcengines:~# apt-get -y install \
     sudo ssh tmux lsof vim zsh git \
-    dnsmasq privoxy hostapd \
+    dnsmasq privoxy hostapd htop lshw \
     curl dnsutils ntp net-tools tcpdump whois \
-    make autoconf gcc gnupg ca-certificates apt-transport-https \
-    man-db jmtpfs htop lshw
+    make autoconf gcc gnupg ca-certificates apt-transport-https
 ```
 
 **Optional** Change the default login shell to Zsh for the primary user:
@@ -1031,19 +1040,19 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/jedisct1/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.28/dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.33/dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz
 
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.28/dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz.minisig
+$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.33/dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz.minisig
 
-$ minisign -Vm dnscrypt-proxy-*28.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+$ minisign -Vm dnscrypt-proxy-*33.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1570912700   file:dnscrypt-proxy-linux_x86_64-2.0.28.tar.gz
+Trusted comment: timestamp:1574079300   file:dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz
 
-$ tar xf dnscrypt-proxy*gz
+$ tar xf dnscrypt-proxy-*33.tar.gz
 
 $ cp config/dnscrypt-proxy.toml linux-x86_64/
 
-$ cd linux-x86_64
+$ cd linux-x86_64/
 
 $ vim dnscrypt-proxy.toml
 ```
@@ -1124,7 +1133,7 @@ Check running processes and sessions with `ps -A` and `last`.
 
 Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
 
-OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates by periodically running `doas sysupgrade -s`.
+OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates by periodically running `doas sysupgrade -s` to reboot and install updates.
 
 Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.openbsd.org/OpenBSD-current/man8/sensorsd.8).
 
