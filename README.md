@@ -91,14 +91,14 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 $ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Fri Nov  8 01:54:11 2019 PST
+gpg: Signature made Tue Dec 10 02:27:13 2019 PST
 gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
 
-$ shasum -a256 apu4_v4.10.0.3.rom 2>/dev/null || sha256 apu4_v4.10.0.3.rom | grep $(cat apu4_v4.10.0.3.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a256 apu4_v4.11.0.1.rom 2>/dev/null || sha256 apu4_v4.11.0.1.rom | grep $(cat apu4_v4.11.0.1.SHA256 | awk '{print $1}') -q && echo ok
 ok
 ```
 
@@ -121,7 +121,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.10.0.3.rom /mnt/usb
+$ sudo cp -v apu4_v4.11.0.1.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -158,7 +158,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.10.0.3.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.1.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -594,7 +594,7 @@ user@localhost$ sudo lshw -C network | grep "logical name"
 On the APU, edit `/etc/network/interfaces` to append:
 
 ```
-allow-hotplug enp2s0
+auto enp2s0
 iface enp2s0 inet static
 address 10.8.1.1
 netmask 255.255.255.0
@@ -614,7 +614,7 @@ root@pcengines:~# ifup enp2s0
 On another Linux computer, edit `/etc/network/interfaces` to append:
 
 ```
-allow-hotplug eno1
+auto eno1
 iface eno1 inet static
 address 10.8.1.2
 netmask 255.255.255.0
@@ -1037,18 +1037,18 @@ $ make
 $ sudo make install
 ```
 
-Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/jedisct1/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
+Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.33/dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.35/dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz
 
-$ curl -LfO https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.33/dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz.minisig
+curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.35/dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz.minisig
 
-$ minisign -Vm dnscrypt-proxy-*33.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+$ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1574079300   file:dnscrypt-proxy-linux_x86_64-2.0.33.tar.gz
+Trusted comment: timestamp:1575935352   file:dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz
 
-$ tar xf dnscrypt-proxy-*33.tar.gz
+$ tar xf dnscrypt-proxy*.gz
 
 $ cp config/dnscrypt-proxy.toml linux-x86_64/
 
@@ -1060,7 +1060,7 @@ $ vim dnscrypt-proxy.toml
 **Optional** Download and configure a hosts blacklist:
 
 ```console
-$ git clone https://github.com/jedisct1/dnscrypt-proxy
+$ git clone https://github.com/DNSCrypt/dnscrypt-proxy
 
 $ cd dnscrypt-proxy/utils/generate-domains-blacklists
 
