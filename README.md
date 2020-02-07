@@ -81,7 +81,9 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 # Updating firmware
 
-Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/); download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz) and the latest release.
+To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
+
+Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
 **Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
@@ -91,14 +93,14 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 $ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Tue Dec 10 02:27:13 2019 PST
+gpg: Signature made Thu 30 Jan 2020 03:57:36 AM PST
 gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
 
-$ shasum -a256 apu4_v4.11.0.1.rom 2>/dev/null || sha256 apu4_v4.11.0.1.rom | grep $(cat apu4_v4.11.0.1.SHA256 | awk '{print $1}') -q && echo ok
+$ shasum -a 256 apu4_v4.11.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.3.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -121,7 +123,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.11.0.1.rom /mnt/usb
+$ sudo cp -v apu4_v4.11.0.3.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -185,17 +187,16 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20190711
-BIOS version v4.10.0.3
-
+coreboot build 20202901
+BIOS version v4.11.0.3
 ```
 
 From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfea8020 (12 entries)
-bios0: vendor coreboot version "v4.10.0.3" date 11/07/2019
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (12 entries)
+bios0: vendor coreboot version "v4.11.0.3" date 01/29/2020
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -204,7 +205,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.10.0.3 11/07/2019
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.3 01/29/2020
 ```
 
 # Prepare OS installer
@@ -253,11 +254,9 @@ gpg: Signature made Sat Nov 16 18:48:09 2019 PST
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
-$ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv DF9B9C49EAA9298432589D76DA87E80D62
-94BE9B
+$ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: key 0xDA87E80D6294BE9B: 63 signatures not checked due to missing keys
-gpg: key 0xDA87E80D6294BE9B: public key "Debian CD signing key <debian-cd@lists.debian.org>" i
-mported
+gpg: key 0xDA87E80D6294BE9B: public key "Debian CD signing key <debian-cd@lists.debian.org>" imported
 gpg: marginals needed: 3  completes needed: 1  trust model: pgp
 gpg: depth: 0  valid:   3  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 3u
 gpg: Total number processed: 1
@@ -530,9 +529,9 @@ Found initrd image: /boot/initrd.img-4.9.0-11-amd64
 Install any pending updates or install software:
 
 ```console
-root@pcengines:~# apt-get update && apt-get -y upgrade
+root@pcengines:~# apt update && apt -y upgrade
 
-root@pcengines:~# apt-get -y install \
+root@pcengines:~# apt -y install \
     sudo ssh tmux lsof vim zsh git \
     dnsmasq privoxy hostapd htop lshw \
     curl dnsutils ntp net-tools tcpdump whois \
@@ -830,7 +829,7 @@ $ tar xf hostapd-2.9.tar.gz
 
 $ cd hostapd-2.9/hostapd
 
-$ sudo apt-get install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
+$ sudo apt install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
 ```
 
 Edit the build configuration to enable features:
@@ -963,7 +962,7 @@ $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 Install Privoxy:
 
 ```console
-$ sudo apt-get -y install privoxy
+$ sudo apt -y install privoxy
 ```
 
 Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
@@ -995,7 +994,7 @@ Crunch: Redirected: http://bbc.com/
 Install Lighttpd with ModMagnet:
 
 ```console
-$ sudo apt-get -y install lighttpd lighttpd-mod-magnet
+$ sudo apt -y install lighttpd lighttpd-mod-magnet
 ```
 
 Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
@@ -1018,7 +1017,7 @@ $ sudo cat /var/log/lighttpd/error.log
 Download the Minisign [source code](https://github.com/jedisct1/minisign/releases/latest), build and install it:
 
 ```console
-$ sudo apt-get install -y libsodium-dev pkg-config cmake
+$ sudo apt install -y libsodium-dev pkg-config cmake
 
 $ curl -o minisign-0.8.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.8.tar.gz
 
@@ -1040,13 +1039,13 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.35/dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.39/dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz
 
-curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.35/dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz.minisig
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.39/dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz.minisig
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1575935352   file:dnscrypt-proxy-linux_x86_64-2.0.35.tar.gz
+Trusted comment: timestamp:1580467116   file:dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz
 
 $ tar xf dnscrypt-proxy*.gz
 
