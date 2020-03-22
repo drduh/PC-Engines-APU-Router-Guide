@@ -32,6 +32,8 @@ This guide should work on any PC Engines APU model. Here is a suggested parts li
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
+See [Issue #1](https://github.com/drduh/PC-Engines-APU-Router-Guide/issues/1) for a list of alternative parts.
+
 ## Assembly
 
 Clear an area to work and unpack all the materials. Follow the [apu cooling assembly instructions](https://www.pcengines.ch/apucool.htm) to install the heat conduction plate.
@@ -90,17 +92,17 @@ Check for the latest firmware version at [pcengines.github.io](https://pcengines
 Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.10-key.asc), then check the file signature:
 
 ```console
-$ gpg --import pcengines-open-source-firmware-release-4.10-key.asc
+$ gpg --import pcengines-open-source-firmware-release-4.11-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Thu 30 Jan 2020 03:57:36 AM PST
-gpg:                using RSA key 3B710228A4774C4FCB315876233D0487B3A7A83C
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.10 Signing Key" [unknown]
+gpg: Signature made Fri Feb 28 08:17:53 2020 PST
+gpg:                using RSA key 0A8E0CDC16E1EDC8C8E209D115B7A4BC249E3AD6
+gpg: Good signature from "PC Engines Open Source Firmware Release 4.11 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: 3B71 0228 A477 4C4F CB31  5876 233D 0487 B3A7 A83C
+Primary key fingerprint: 0A8E 0CDC 16E1 EDC8 C8E2  09D1 15B7 A4BC 249E 3AD6
 
-$ shasum -a 256 apu4_v4.11.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.3.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.11.0.4.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.4.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -123,7 +125,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.11.0.3.rom /mnt/usb
+$ sudo cp -v apu4_v4.11.0.4.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -160,7 +162,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.1.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.4.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -187,8 +189,8 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20202901
-BIOS version v4.11.0.3
+coreboot build 20202602
+BIOS version v4.11.0.4
 ```
 
 From OpenBSD:
@@ -196,7 +198,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (12 entries)
-bios0: vendor coreboot version "v4.11.0.3" date 01/29/2020
+bios0: vendor coreboot version "v4.11.0.4" date 02/26/2020
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -205,7 +207,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.3 01/29/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.4 02/26/2020
 ```
 
 # Prepare OS installer
@@ -244,7 +246,7 @@ $ sudo dd if=install66.fs of=/dev/sdd bs=1M
 
 ## Debian
 
-Download the network installation image - [`debian-10.2.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-10.3.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
@@ -274,15 +276,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-10.2.0-amd64-netinst.iso) SHA512SUMS
-5495c8378b829df7386b9bac5bc701f7ad8b2843d088e8636c89549519cf176100eacb90121af3934a8c5229cbe7d2fd23342eda330d56fb45fb2d91f2117fb4  debian-10.2.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-10.3.0-amd64-netinst.iso) SHA512SUMS
+c6adede144eb32b7316b65342f7445cb13b95ef17551d47ce1a8468d3954710f5f68c979c1086aa1b94262c8bfd86679eb38b01731c7b9aaeaca690455f1ff7f debian-10.3.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-10.2.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:5495c8378b829df7386b9bac5bc701f7ad8b2843d088e8636c89549519cf176100eacb90121af3934a8c5229cbe7d2fd23342eda330d56fb45fb2d91f2117fb4  debian-10.2.0-amd64-netinst.iso
+$ grep $(sha512sum debian-10.3.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:c6adede144eb32b7316b65342f7445cb13b95ef17551d47ce1a8468d3954710f5f68c979c1086aa1b94262c8bfd86679eb38b01731c7b9aaeaca690455f1ff7f debian-10.3.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -290,17 +292,16 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-10.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-10.3.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-10.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-10.3.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
-
 
 # Installing the OS
 
