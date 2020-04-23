@@ -83,11 +83,11 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 # Updating firmware
 
-To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
+**Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
 Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
-**Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
+To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
 Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.10-key.asc), then check the file signature:
 
@@ -95,14 +95,14 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 $ gpg --import pcengines-open-source-firmware-release-4.11-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Fri Feb 28 08:17:53 2020 PST
+gpg: Signature made Tue Mar 31 02:56:19 2020 PDT
 gpg:                using RSA key 0A8E0CDC16E1EDC8C8E209D115B7A4BC249E3AD6
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.11 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 0A8E 0CDC 16E1 EDC8 C8E2  09D1 15B7 A4BC 249E 3AD6
 
-$ shasum -a 256 apu4_v4.11.0.4.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.4.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.11.0.5.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.5.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -125,7 +125,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.11.0.4.rom /mnt/usb
+$ sudo cp -v apu4_v4.11.0.5.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -162,7 +162,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.4.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.5.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -189,8 +189,8 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20202602
-BIOS version v4.11.0.4
+coreboot build 20202903
+BIOS version v4.11.0.5
 ```
 
 From OpenBSD:
@@ -198,7 +198,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (12 entries)
-bios0: vendor coreboot version "v4.11.0.4" date 02/26/2020
+bios0: vendor coreboot version "v4.11.0.5" date 03/29/2020
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 4.0
 ```
@@ -207,8 +207,20 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.4 02/26/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.5 03/29/2020
 ```
+
+**Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
+
+```console
+$ sudo apt install flashrom
+
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.11.0.5.rom
+
+$ sudo flashrom -p internal -w apu2_v4.11.0.5.rom
+```
+
+To complete the update, shut down Debian and power off the APU fully, then reboot.
 
 # Prepare OS installer
 
@@ -1040,13 +1052,13 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.39/dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.42/dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz
 
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.39/dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz.minisig
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.42/dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz.minisig
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1580467116   file:dnscrypt-proxy-linux_x86_64-2.0.39.tar.gz
+Trusted comment: timestamp:1585244935   file:dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz
 
 $ tar xf dnscrypt-proxy*.gz
 
