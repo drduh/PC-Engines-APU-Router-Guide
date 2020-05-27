@@ -40,22 +40,22 @@ Clear an area to work and unpack all the materials. Follow the [apu cooling asse
 
 Attach the mSATA disk and miniPCI wireless adapter in their respective slots.
 
-**Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
-
-1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
-1. Install the radio card in the miniPCI express socket.
-1. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
-1. Touch the I-PEX connector of the pigtail to the mounting hole (discharge), then plug onto the radio card (this is where the pre-requisite patience comes in.
-
-To avoid arcing, plug in the DC jack first, then plug the power adapter into mains.
-
-Press `F10` during boot and select `Payload [memtest]` to complete at least one pass.
-
 See the relevant APU series manual for detailed board information:
 
 * [APU2](https://www.pcengines.ch/pdf/apu2.pdf)
 * [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
 * [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
+
+**Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
+
+1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
+1. Install the radio card in the miniPCI express socket.
+1. Install the pigtail cable in the cut-out of the enclosure. This will ground the pigtail to the enclosure.
+1. Touch the I-PEX connector of the pigtail to the mounting hole to discharge, then plug onto the radio card.
+
+To avoid arcing, plug in the DC jack first, then plug the power adapter into mains.
+
+Press `F10` during boot and select `Payload [memtest]` to complete at least one pass.
 
 # Connect over serial
 
@@ -102,7 +102,7 @@ gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: 0A8E 0CDC 16E1 EDC8 C8E2  09D1 15B7 A4BC 249E 3AD6
 
-$ shasum -a 256 apu4_v4.11.0.5.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.5.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.11.0.6.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.6.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -125,7 +125,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.11.0.5.rom /mnt/usb
+$ sudo cp -v apu4_v4.11.0.6.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -162,7 +162,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.5.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.6.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -189,25 +189,26 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20202903
-BIOS version v4.11.0.5
+coreboot build 20202604
+BIOS version v4.11.0.6
 ```
 
 From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (12 entries)
-bios0: vendor coreboot version "v4.11.0.5" date 03/29/2020
+dmesg | grep bios
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (13 entries)
+bios0: vendor coreboot version "v4.11.0.6" date 04/26/2020
 bios0: PC Engines apu4
-acpi0 at bios0: ACPI 4.0
+acpi0 at bios0: ACPI 6.0
 ```
 
 From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.5 03/29/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.6 04/26/2020
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -215,9 +216,9 @@ $ sudo dmesg | grep apu
 ```console
 $ sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.11.0.5.rom
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.11.0.6.rom
 
-$ sudo flashrom -p internal -w apu2_v4.11.0.5.rom
+$ sudo flashrom -p internal -w apu2_v4.11.0.6.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -228,18 +229,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install66.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/install66.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.6/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install67.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/install67.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-66-base.pub
-untrusted comment: openbsd 6.6 base public key
-RWSvK/c+cFe24BIalifKnqoqdvLlXfeZ9MIj3MINndNeKgyYw5PpcWGn
+$ cat /etc/signify/openbsd-67-base.pub
+untrusted comment: openbsd 6.7 base public key
+RWRmkIA877Io3oCILSZoJGhAswifJbFK4r18ICoia+3c0PfwANueolNj
 
-$ signify -C -p /etc/signify/openbsd-66-base.pub -x SHA256.sig install66.fs
+$ signify -C -p /etc/signify/openbsd-67-base.pub -x SHA256.sig install67.fs
 Signature Verified
-install66.fs: OK
+install67.fs: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -247,18 +248,18 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install66.fs of=/dev/rsd2c bs=1m
+$ doas dd if=install67.fs of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install66.fs of=/dev/sdd bs=1M
+$ sudo dd if=install67.fs of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`debian-10.3.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-10.4.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
@@ -277,7 +278,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Nov 16 18:48:09 2019 PST
+gpg: Signature made Sat 09 May 2020 05:16:56 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -288,15 +289,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-10.3.0-amd64-netinst.iso) SHA512SUMS
-c6adede144eb32b7316b65342f7445cb13b95ef17551d47ce1a8468d3954710f5f68c979c1086aa1b94262c8bfd86679eb38b01731c7b9aaeaca690455f1ff7f debian-10.3.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-10.4.0-amd64-netinst.iso) SHA512SUMS
+ec69e4bfceca56222e6e81766bf235596171afe19d47c20120783c1644f72dc605d341714751341051518b0b322d6c84e9de997815e0c74f525c66f9d9eb4295 debian-10.4.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-10.3.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:c6adede144eb32b7316b65342f7445cb13b95ef17551d47ce1a8468d3954710f5f68c979c1086aa1b94262c8bfd86679eb38b01731c7b9aaeaca690455f1ff7f debian-10.3.0-amd64-netinst.iso
+$ grep $(sha512sum debian-10.4.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:ec69e4bfceca56222e6e81766bf235596171afe19d47c20120783c1644f72dc605d341714751341051518b0b322d6c84e9de997815e0c74f525c66f9d9eb4295  debian-10.4.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -304,13 +305,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-10.3.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-10.4.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-10.3.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-10.4.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -327,19 +328,19 @@ Set the serial console parameters:
 Booting from Hard Disk...
 Using drive 0, partition 3.
 Loading......
-probing: pc0 com0 com1 com2 com3 mem[639K 3325M 752M a20=on]
-disk: hd0+ hd1+*
->> OpenBSD/amd64 BOOT 3.45
+probing: pc0 com0 com1 mem[639K 3325M 752M a20=on]
+disk: hd0+ hd1+
+>> OpenBSD/amd64 BOOT 3.47
 boot> stty com0 115200
 boot> set tty com0
-switching console to com>> OpenBSD/amd64 BOOT 3.45
+switching console to com>> OpenBSD/amd64 BOOT 3.47
 boot> [Press Enter]
 ```
 
 Select the Install option:
 
 ```console
-Welcome to the OpenBSD/amd64 6.6 installation program.
+Welcome to the OpenBSD/amd64 6.7 installation program.
 (I)nstall, (U)pgrade, (A)utoinstall or (S)hell? I
 ```
 
@@ -379,8 +380,6 @@ Setup a user? (enter a lower-case loginname, or 'no') [no] sysadm
 Full name for user sysadm? [sysadm]
 Password for user sysadm? (will not echo)
 Password for user sysadm? (again)
-WARNING: root is targeted by password guessing attacks, pubkeys are safer.
-Allow root ssh login? (yes, no, prohibit-password) [no]
 ```
 
 Select the internal mSATA disk and configure the partions:
@@ -388,7 +387,7 @@ Select the internal mSATA disk and configure the partions:
 ```console
 Available disks are: sd0 sd1 sd2.
 Which disk is the root disk? ('?' for details) [sd0] ?
-sd0: ATA, SB2, SBFM naa.0000000000000000 (111.8G)
+sd0: ATA, SB2, SBFM naa.0000000000000000 (119.2G)
 sd1: Samsung, Flash Drive DUO, 1100 serial.0000000000000000 (29.9G)
 sd2: Multiple, Card Reader, 1.00 serial.0000000000000000
 Available disks are: sd0 sd1 sd2.
@@ -400,15 +399,15 @@ The auto-allocated layout for sd0 is:
 #                size           offset  fstype [fsize bsize   cpg]
   a:             1.0G               64  4.2BSD   2048 16384     1 # /
   b:             4.2G          2097216    swap
-  c:           111.8G                0  unused
-  d:             4.0G         10941664  4.2BSD   2048 16384     1 # /tmp
-  e:            11.9G         19330240  4.2BSD   2048 16384     1 # /var
-  f:             3.0G         44359136  4.2BSD   2048 16384     1 # /usr
-  g:             1.0G         50650592  4.2BSD   2048 16384     1 # /usr/X11R6
-  h:            16.2G         52747744  4.2BSD   2048 16384     1 # /usr/local
-  i:             2.0G         86698112  4.2BSD   2048 16384     1 # /usr/src
-  j:             6.0G         90892416  4.2BSD   2048 16384     1 # /usr/obj
-  k:            62.4G        103475328  4.2BSD   2048 16384     1 # /home
+  c:           119.2G                0  unused
+  d:             4.0G         10941728  4.2BSD   2048 16384     1 # /tmp
+  e:            11.9G         19330336  4.2BSD   2048 16384     1 # /var
+  f:             6.0G         44359392  4.2BSD   2048 16384     1 # /usr
+  g:             1.0G         56942304  4.2BSD   2048 16384     1 # /usr/X11R6
+  h:            17.3G         59039456  4.2BSD   2048 16384     1 # /usr/local
+  i:             2.0G         95334496  4.2BSD   2048 16384     1 # /usr/src
+  j:             6.0G         99528800  4.2BSD   2048 16384     1 # /usr/obj
+  k:            65.8G        112111712  4.2BSD   2048 16384     1 # /home
 ```
 
 **Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
@@ -426,16 +425,14 @@ Select a [mirror](https://www.openbsd.org/ftp.html) and start the installation:
 
 ```console
 HTTP Server? (hostname, list#, 'done' or '?') cdn.openbsd.org
-Server directory? [pub/OpenBSD/6.6/amd64]
+Server directory? [pub/OpenBSD/6.7/amd64]
 
 Select sets by entering a set name, a file name pattern or 'all'. De-select
 sets by prepending a '-', e.g.: '-game*'. Selected sets are labelled '[X]'.
-    [X] bsd           [X] base66.tgz    [X] game66.tgz    [X] xfont66.tgz
-    [X] bsd.mp        [X] comp66.tgz    [X] xbase66.tgz   [X] xserv66.tgz
-    [X] bsd.rd        [X] man66.tgz     [X] xshare66.tgz
+    [X] bsd           [X] base67.tgz    [X] game67.tgz    [X] xfont67.tgz
+    [X] bsd.mp        [X] comp67.tgz    [X] xbase67.tgz   [X] xserv67.tgz
+    [X] bsd.rd        [X] man67.tgz     [X] xshare67.tgz
 Set name(s)? (or 'abort' or 'done') [done]
-Get/Verify SHA256.sig   100% |**************************|  2141       00:00
-Signature Verified
 ```
 
 After installation is complete, unplug the USB disk and reboot. See the OpenBSD [FAQ](https://www.openbsd.org/faq/faq4.html#Install) for more information.
@@ -448,13 +445,23 @@ At the install menu, press `Tab` to edit boot options and replace `quiet` with:
 console=ttyS0,115200n8
 ```
 
-Select a network adapter - `enp1s0` is the interface closest to the serial port.
+If there's a video mode error, press `Enter` and select an available resolution:
 
-Proceed through the installer, selecting `Guided - use entire disk` as the partition method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
+```
+Undefined video mode number: 314
+Press <ENTER> to see video modes available, <SPACE> to continue, or wait 30 sec
+Mode: Resolution:  Type:
+0 F00   80x25      CGA/MDA/HGC
+Enter a video mode or "scan" to scan for additional modes: 0
+```
+
+Configure a network adapter - `enp1s0` is the interface closest to the serial port.
+
+Proceed through the installer. Select `Guided - use entire disk and set up LVM` as the partition method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
 
 Select `Separate /home, /var, and /tmp partitions` as the [partitioning scheme](https://www.debian.org/releases/stable/armel/apcs03.html.en).
 
-During `Software selection` - unselect everything except SSH server.
+During `Software selection` - de-select everything except SSH server.
 
 Select `/dev/sda` as the GRUB loader target.
 
@@ -502,13 +509,13 @@ Press `Control-X` to continue booting and you should see console output.
 Log in as `root` and install any [pending updates](https://man.openbsd.org/syspatch), unless already [following -current](https://www.openbsd.org/faq/current.html):
 
 ```console
-$ syspatch -v
+# syspatch
 ```
 
 Install any pending [firmware updates](https://man.openbsd.org/fw_update):
 
 ```console
-$ fw_update
+# fw_update
 ```
 
 Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf) without a password:
@@ -524,13 +531,13 @@ Install any needed software:
 $ pkg_add vim zsh curl free pftop vnstat
 ```
 
-Log out as `root` when finished.
+Log out as `root` and reboot when finished.
 
 ## Debian
 
 Log in as `root` to get started.
 
-Update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
+If necessary, update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
 root@pcengines:~# update-grub2
@@ -745,7 +752,7 @@ sysadm@pcengines~ %
 $ git clone https://github.com/drduh/config
 ```
 
-The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting.
+The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting, otherwise anyone can plug in the serial cable to assume your session.
 
 # DHCP and DNS
 
@@ -830,7 +837,7 @@ Ensure hostapd starts:
 $ sudo hostapd -dd /etc/hostapd.conf
 ```
 
-If there are any syntax errors, download a newer version of hostapd:
+If there are any syntax errors, download a [newer version of hostapd](https://w1.fi/releases/?C=M;O=D):
 
 ```console
 $ curl -O https://w1.fi/releases/hostapd-2.9.tar.gz
@@ -862,6 +869,8 @@ Make, install and test the new version of hostapd:
 
 ```console
 $ make -sj4
+
+$ strip -s hostapd
 
 $ sudo make install
 
@@ -1076,7 +1085,7 @@ $ git clone https://github.com/DNSCrypt/dnscrypt-proxy
 
 $ cd dnscrypt-proxy/utils/generate-domains-blacklists
 
-$ python generate-domains-blacklist.py > blacklist-$(date +%F).txt
+$ python3 generate-domains-blacklist.py > blacklist-$(date +%F).txt
 
 $ cp blacklist-$(date +%F).txt ~/linux-x86_64/blacklist.txt
 ```
