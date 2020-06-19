@@ -89,18 +89,18 @@ Check for the latest firmware version at [pcengines.github.io](https://pcengines
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
-Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.10-key.asc), then check the file signature:
+Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.12-key.asc), then check the file signature:
 
 ```console
-$ gpg --import pcengines-open-source-firmware-release-4.11-key.asc
+$ gpg --import pcengines-open-source-firmware-release-4.12-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Tue Mar 31 02:56:19 2020 PDT
-gpg:                using RSA key 0A8E0CDC16E1EDC8C8E209D115B7A4BC249E3AD6
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.11 Signing Key" [unknown]
+gpg: Signature made Mon 01 Jun 2020 12:51:38 AM PDT
+gpg:                using RSA key A5B64D59EFDD7BAB8BABD60B2AE058A9E9849FA4
+gpg: Good signature from "PC Engines Open Source Firmware Release 4.12 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: 0A8E 0CDC 16E1 EDC8 C8E2  09D1 15B7 A4BC 249E 3AD6
+Primary key fingerprint: A5B6 4D59 EFDD 7BAB 8BAB  D60B 2AE0 58A9 E984 9FA4
 
 $ shasum -a 256 apu4_v4.11.0.6.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.6.SHA256 | awk '{print $1}') && echo ok
 ok
@@ -157,12 +157,12 @@ Save the existing version and write the new one:
 ```console
 root@pcengines:~# cd /media/SYSLINUX
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(date +%F)
+root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s baseboard-serial-number).$(date +%F)
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.11.0.6.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.12.0.1.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -189,17 +189,16 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20202604
-BIOS version v4.11.0.6
+coreboot build 20202905
+BIOS version v4.12.0.1
 ```
 
 From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9f020 (13 entries)
-bios0: vendor coreboot version "v4.11.0.6" date 04/26/2020
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9e020 (13 entries)
+bios0: vendor coreboot version "v4.12.0.1" date 05/29/2020
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 6.0
 ```
@@ -208,7 +207,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.11.0.6 04/26/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.12.0.1 05/29/2020
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -528,7 +527,7 @@ permit nopass keepenv root
 Install any needed software:
 
 ```console
-$ pkg_add vim zsh curl free pftop vnstat
+# pkg_add vim zsh curl free pftop vnstat
 ```
 
 Log out as `root` and reboot when finished.
@@ -1067,7 +1066,7 @@ $ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.42/
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1585244935   file:dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz
+Trusted comment: timestamp:1591902017   file:dnscrypt-proxy-linux_x86_64-2.0.44.tar.gz
 
 $ tar xf dnscrypt-proxy*.gz
 
@@ -1174,6 +1173,18 @@ $ sudo apt install selinux-basics selinux-policy-default
 $ sudo selinux-activate
 
 $ sudo reboot
+```
+
+Install and enable [AppArmor](https://wiki.debian.org/AppArmor):
+
+```console
+$ sudo apt install apparmor apparmor-profiles apparmor-utils
+
+$ sudo mkdir -p /etc/default/grub.d
+
+$ echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
+
+$ sudo update-grub
 ```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
