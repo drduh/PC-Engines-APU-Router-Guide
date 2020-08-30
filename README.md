@@ -95,14 +95,14 @@ Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-se
 $ gpg --import pcengines-open-source-firmware-release-4.12-key.asc
 
 $ gpg apu*sig
-gpg: Signature made Mon 01 Jun 2020 12:51:38 AM PDT
+gpg: Signature made Mon Aug  3 03:49:04 2020 PDT
 gpg:                using RSA key A5B64D59EFDD7BAB8BABD60B2AE058A9E9849FA4
 gpg: Good signature from "PC Engines Open Source Firmware Release 4.12 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
 Primary key fingerprint: A5B6 4D59 EFDD 7BAB 8BAB  D60B 2AE0 58A9 E984 9FA4
 
-$ shasum -a 256 apu4_v4.11.0.6.rom 2>/dev/null | grep -q $(cat apu4_v4.11.0.6.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.12.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.12.0.3.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -125,7 +125,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.11.0.6.rom /mnt/usb
+$ sudo cp -v apu4_v4.12.0.3.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -157,12 +157,12 @@ Save the existing version and write the new one:
 ```console
 root@pcengines:~# cd /media/SYSLINUX
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s baseboard-serial-number).$(date +%F)
+root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s baseboard-serial-number|tail -n1).$(date +%F)
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.12.0.1.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.12.0.3.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -185,20 +185,22 @@ b8db83d5ff0acea32a9c8c4b1ecaa125a4482446  apu4_v4.9.0.6.rom
 
 Unplug the USB disk and `reboot`.
 
+On reboot, select `F10` and `Payload [setup]`. Press `w` to enable BIOS write protection then `s` to save and reboot.
+
 Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20202905
-BIOS version v4.12.0.1
+coreboot build 20203007
+BIOS version v4.12.0.3
 ```
 
 From OpenBSD:
 
 ```console
 $ dmesg | grep bios
-bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe9e020 (13 entries)
-bios0: vendor coreboot version "v4.12.0.1" date 05/29/2020
+bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe8b020 (13 entries)
+bios0: vendor coreboot version "v4.12.0.2" date 06/28/2020
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 6.0
 ```
@@ -207,7 +209,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.12.0.1 05/29/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.12.0.3 07/30/2020
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -215,9 +217,9 @@ $ sudo dmesg | grep apu
 ```console
 $ sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.11.0.6.rom
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.12.0.3.rom
 
-$ sudo flashrom -p internal -w apu2_v4.11.0.6.rom
+$ sudo flashrom -p internal -w apu2_v4.12.0.3.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -1185,6 +1187,14 @@ $ sudo mkdir -p /etc/default/grub.d
 $ echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
 
 $ sudo update-grub
+```
+
+Install and enable [Firejail](https://firejail.wordpress.com/):
+
+```console
+$ sudo apt install firejail firejail-profiles
+
+$ sudo firecfg
 ```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
