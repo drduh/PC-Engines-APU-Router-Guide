@@ -10,8 +10,8 @@ The completed router configuration will enable:
 
 * An egress Ethernet interface for Internet routing - can be connected to WAN or a cable modem
 * A local wireless interface on `192.168.1.0/24`
-* A local Ethernet interface on `10.8.1.0/24`
 * A local Ethernet interface on `172.16.1.0/24`
+* A local Ethernet interface on `10.8.1.0/24`
 * An additional (4th) Ethernet interface is available on APU4
 
 ## Hardware
@@ -89,20 +89,22 @@ Check for the latest firmware version at [pcengines.github.io](https://pcengines
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
-Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/blob/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.12-key.asc), then check the file signature:
+Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/tree/master/customer-keys/pcengines/release-keys), then check the file signature:
 
 ```console
-$ gpg --import pcengines-open-source-firmware-release-4.12-key.asc
+$ curl -LO https://github.com/3mdeb/3mdeb-secpack/raw/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.14-key.asc
 
-$ gpg apu*sig
-gpg: Signature made Mon Aug  3 03:49:04 2020 PDT
-gpg:                using RSA key A5B64D59EFDD7BAB8BABD60B2AE058A9E9849FA4
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.12 Signing Key" [unknown]
+$ gpg --import pcengines-open-source-firmware-release-4.14-key.asc
+
+$ gpg apu4_v4.14.0.3.SHA256.sig
+gpg: Signature made Fri Aug 13 08:55:30 2021 PDT
+gpg:                using RSA key 4825F0B02609904A9F9896BAC06ADEE757C2E791
+gpg: Good signature from "PC Engines Open Source Firmware Release 4.14 Signing Key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: A5B6 4D59 EFDD 7BAB 8BAB  D60B 2AE0 58A9 E984 9FA4
+Primary key fingerprint: 4825 F0B0 2609 904A 9F98  96BA C06A DEE7 57C2 E791
 
-$ shasum -a 256 apu4_v4.12.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.12.0.3.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.14.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.14.0.3.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -125,7 +127,7 @@ $ sudo mkdir /mnt/usb
 
 $ sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_v4.12.0.3.rom /mnt/usb
+$ sudo cp -v apu4_*.rom /mnt/usb
 
 $ sudo umount /mnt/usb
 ```
@@ -133,7 +135,7 @@ $ sudo umount /mnt/usb
 Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
 
 ```console
-SeaBIOS (version rel-1.12.1.3-0-g300e8b7)
+SeaBIOS (version rel-1.14.0.1-0-g8610266a)
 
 Press F10 key now for boot menu
 
@@ -162,7 +164,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s 
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.12.0.3.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.14.0.3.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -170,20 +172,7 @@ Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
 ```
 
-To check previously saved files:
-
-```console
-root@pcengines:/media/SYSLINUX# sha1sum apu4*
-9a8e47e04c88c914e596efdf74a44518fb3b32f0  apu4.rom.2019-04-15
-9c1fe2eba3bc3558256538bc1d7485b29b5ce57d  apu4.rom.2019-05-23
-7cc9943d2501a635bb93232f185cef18d58bc408  apu4.rom.2019-06-15
-9a8e47e04c88c914e596efdf74a44518fb3b32f0  apu4_v4.9.0.1.rom
-9c1fe2eba3bc3558256538bc1d7485b29b5ce57d  apu4_v4.9.0.4.rom
-7cc9943d2501a635bb93232f185cef18d58bc408  apu4_v4.9.0.5.rom
-b8db83d5ff0acea32a9c8c4b1ecaa125a4482446  apu4_v4.9.0.6.rom
-```
-
-Unplug the USB disk and `reboot`.
+Unplug the USB disk and `reboot`
 
 On reboot, select `F10` and `Payload [setup]`. Press `w` to enable BIOS write protection then `s` to save and reboot.
 
@@ -191,8 +180,8 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20203007
-BIOS version v4.12.0.3
+coreboot build 20212705
+BIOS version v4.14.0.1
 ```
 
 From OpenBSD:
@@ -209,7 +198,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.12.0.3 07/30/2020
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.14.0.1 05/27/2021
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -217,9 +206,9 @@ $ sudo dmesg | grep apu
 ```console
 $ sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.12.0.3.rom
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.14.0.3.rom
 
-$ sudo flashrom -p internal -w apu2_v4.12.0.3.rom
+$ sudo flashrom -p internal -w apu2_v4.14.0.3.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -230,18 +219,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install67.fs`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/install67.fs) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.7/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install69.img`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/install69.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-67-base.pub
-untrusted comment: openbsd 6.7 base public key
-RWRmkIA877Io3oCILSZoJGhAswifJbFK4r18ICoia+3c0PfwANueolNj
+$ cat /etc/signify/openbsd-69-base.pub
+untrusted comment: openbsd 6.9 base public key
+RWQQsAemppS46LT4dNnAtVUZt51ResyNU35n4OH9yl/r7JcR3B75fO4V
 
-$ signify -C -p /etc/signify/openbsd-67-base.pub -x SHA256.sig install67.fs
+$ signify -C -p /etc/signify/openbsd-69-base.pub -x SHA256.sig install69.img
 Signature Verified
-install67.fs: OK
+install69.img: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -249,24 +238,24 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install67.fs of=/dev/rsd2c bs=1m
+$ doas dd if=install69.img of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install67.fs of=/dev/sdd bs=1M
+$ sudo dd if=install69.img of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`debian-10.4.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the network installation image - [`debian-11.0.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Nov 16 18:48:09 2019 PST
+gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
@@ -279,7 +268,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat 09 May 2020 05:16:56 PM PDT
+gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -290,15 +279,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-10.4.0-amd64-netinst.iso) SHA512SUMS
-ec69e4bfceca56222e6e81766bf235596171afe19d47c20120783c1644f72dc605d341714751341051518b0b322d6c84e9de997815e0c74f525c66f9d9eb4295 debian-10.4.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-11.0.0-amd64-netinst.iso) SHA512SUMS
+5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801 debian-11.0.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-10.4.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:ec69e4bfceca56222e6e81766bf235596171afe19d47c20120783c1644f72dc605d341714751341051518b0b322d6c84e9de997815e0c74f525c66f9d9eb4295  debian-10.4.0-amd64-netinst.iso
+$ grep $(sha512sum debian-11.0.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801  debian-11.0.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -306,13 +295,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-10.4.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-11.0.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-10.4.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-11.0.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -440,13 +429,13 @@ After installation is complete, unplug the USB disk and reboot. See the OpenBSD 
 
 ## Debian
 
-At the install menu, press `Tab` to edit boot options and replace `quiet` with:
+At the install menu, select `Tab` to edit boot options and replace `quiet` with:
 
 ```
 console=ttyS0,115200n8
 ```
 
-If there's a video mode error, press `Enter` and select an available resolution:
+Select `Enter` and select an available resolution:
 
 ```
 Undefined video mode number: 314
@@ -458,13 +447,13 @@ Enter a video mode or "scan" to scan for additional modes: 0
 
 Configure a network adapter - `enp1s0` is the interface closest to the serial port.
 
-Proceed through the installer. Select `Guided - use entire disk and set up LVM` as the partition method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
+Select `Guided - use entire disk and set up LVM` as the partition method. Be sure to select internal mSATA drive and not the USB disk as the installation target (usually `sda`).
 
 Select `Separate /home, /var, and /tmp partitions` as the [partitioning scheme](https://www.debian.org/releases/stable/armel/apcs03.html.en).
 
-During `Software selection` - de-select everything except SSH server.
+During `Software selection` - de-select everything except *SSH server*.
 
-Select `/dev/sda` as the GRUB loader target.
+Select the internal mSATA drive and not the USB disk as the GRUB loader target.
 
 # First boot
 
@@ -556,7 +545,7 @@ root@pcengines:~# apt -y install \
     sudo ssh tmux lsof vim zsh git \
     dnsmasq privoxy hostapd htop lshw \
     curl dnsutils ntp net-tools tcpdump whois \
-    make autoconf gcc gnupg ca-certificates apt-transport-https
+    make autoconf gcc gnupg apt-transport-https
 ```
 
 **Optional** Change the default login shell to Zsh for the primary user:
@@ -759,15 +748,19 @@ The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or
 
 [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) will provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and handle DNS for the local network(s).
 
-Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) with blocklists and configure to your needs:
+Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for a configuration example, including blocked domains:
 
 ```console
-$ sudo cp config/dnsmasq.conf /etc/dnsmasq.conf
+# cp config/dnsmasq.conf /etc/dnsmasq.conf
 
-$ cat config/domains/* | sudo tee -a /etc/dnsmasq.conf
+# cat config/domains/* | tee -a /etc/dnsmasq.conf
 
-$ sudo vim /etc/dnsmasq.conf
+# vim /etc/dnsmasq.conf
+```
 
+Configure additional blocklist:
+
+```console
 $ git clone https://github.com/StevenBlack/hosts
 
 $ sudo cp hosts/hosts /etc/dns-blocklist
@@ -775,7 +768,7 @@ $ sudo cp hosts/hosts /etc/dns-blocklist
 
 ## OpenBSD
 
-Install dnsmasq, start the service and enable it on boot:
+To install dnsmasq as a service enabled on boot:
 
 ```console
 $ doas pkg_add dnsmasq
@@ -784,16 +777,6 @@ $ doas rcctl start dnsmasq
 dnsmasq(ok)
 
 $ doas rcctl enable dnsmasq
-```
-
-## Debian
-
-Restart the service and enable it on boot:
-
-```console
-$ sudo service dnsmasq restart
-
-$ sudo systemctl enable dnsmasq
 ```
 
 # Wireless
@@ -821,24 +804,30 @@ $ doas sh /etc/netstart
 Install the default hostapd configuration:
 
 ```console
-$ zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | sudo tee -a /etc/hostapd.conf
+# zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | tee -a /etc/hostapd.conf
 ```
 
 Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
 
 ```console
-$ sudo cp config/hostapd.conf /etc/hostapd.conf
+# cp config/hostapd.conf /etc/hostapd.conf
+```
 
-$ sudo vim /etc/hostapd.conf
+Edit the configuration to set the network name and password.
+
+*Tip* Avoid passwords with the characters `'` and `"`.
+
+```console
+# vim /etc/hostapd.conf
 ```
 
 Ensure hostapd starts:
 
 ```console
-$ sudo hostapd -dd /etc/hostapd.conf
+# hostapd -dd /etc/hostapd.conf
 ```
 
-If there are any syntax errors, download a [newer version of hostapd](https://w1.fi/releases/?C=M;O=D):
+**Note** If there are errors, download, compile and install a [newer version of hostapd](https://w1.fi/releases/?C=M;O=D):
 
 ```console
 $ curl -O https://w1.fi/releases/hostapd-2.9.tar.gz
@@ -919,9 +908,9 @@ $ echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
 Enable now and on boot:
 
 ```console
-$ sudo sysctl -w net.ipv4.ip_forward=1
+# sysctl -w net.ipv4.ip_forward=1
 
-$ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
+# echo "net.ipv4.ip_forward=1" | tee --append /etc/sysctl.conf
 ```
 
 # Configure firewall
@@ -961,19 +950,19 @@ Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
 
 ```console
-$ cp config/scripts/iptables.sh /etc/
+# cp config/scripts/iptables.sh /etc
 
-$ sudo vim /etc/iptables.sh
+# vim /etc/iptables.sh
 
-$ sudo chmod +x /etc/iptables.sh
+# chmod +x /etc/iptables.sh
 
-$ sudo /etc/iptables.sh
+# /etc/iptables.sh
 ```
 
 Save the firewall rules to apply them on boot:
 
 ```console
-$ sudo iptables-save | sudo tee /etc/iptables/rules.v4
+# iptables-save | tee /etc/iptables/rules.v4
 ```
 
 # Privoxy
@@ -985,21 +974,21 @@ $ sudo iptables-save | sudo tee /etc/iptables/rules.v4
 Install Privoxy:
 
 ```console
-$ sudo apt -y install privoxy
+# apt -y install privoxy
 ```
 
 Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
 
 ```console
-$ sudo cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
+# cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
 ```
 
 Restart the service and check the log:
 
 ```console
-$ sudo service privoxy restart
+# service privoxy restart
 
-$ sudo tail -f /var/log/privoxy/logfile
+# tail -f /var/log/privoxy/logfile
 [...]
 Info: Listening on port 8118 on IP address 127.0.0.1
 Info: Listening on port 8118 on IP address 10.8.1.1
@@ -1017,21 +1006,21 @@ Crunch: Redirected: http://bbc.com/
 Install Lighttpd with ModMagnet:
 
 ```console
-$ sudo apt -y install lighttpd lighttpd-mod-magnet
+# apt -y install lighttpd lighttpd-mod-magnet
 ```
 
 Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
 
 ```console
-$ sudo cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
+# cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
 ```
 
 Restart the service and check the log:
 
 ```console
-$ sudo service lighttpd restart
+# service lighttpd restart
 
-$ sudo cat /var/log/lighttpd/error.log
+# cat /var/log/lighttpd/error.log
 2019-01-01 12:00:00: (log.c.217) server started
 ```
 
@@ -1042,11 +1031,11 @@ Download the Minisign [source code](https://github.com/jedisct1/minisign/release
 ```console
 $ sudo apt install -y libsodium-dev pkg-config cmake
 
-$ curl -o minisign-0.8.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.8.tar.gz
+$ curl -o minisign-0.9.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.9.tar.gz
 
-$ tar xf minisign-0.8.tar.gz
+$ tar xf minisign-0.9.tar.gz
 
-$ cd minisign-0.8
+$ cd minisign-0.9
 
 $ mkdir build
 
@@ -1062,13 +1051,13 @@ $ sudo make install
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.42/dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
 
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.0.42/dnscrypt-proxy-linux_x86_64-2.0.42.tar.gz.minisig
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz.minisig
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1591902017   file:dnscrypt-proxy-linux_x86_64-2.0.44.tar.gz
+Trusted comment: timestamp:1628948801   file:dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
 
 $ tar xf dnscrypt-proxy*.gz
 
@@ -1084,11 +1073,11 @@ $ vim dnscrypt-proxy.toml
 ```console
 $ git clone https://github.com/DNSCrypt/dnscrypt-proxy
 
-$ cd dnscrypt-proxy/utils/generate-domains-blacklists
+$ cd dnscrypt-proxy/utils/generate-domains-blocklists
 
-$ python3 generate-domains-blacklist.py > blacklist-$(date +%F).txt
+$ python3 generate-domains-blocklist.py > blocklist-$(date +%F).txt
 
-$ cp blacklist-$(date +%F).txt ~/linux-x86_64/blacklist.txt
+$ cp blocklist-$(date +%F).txt ~/linux-x86_64/blocklist.txt
 ```
 
 Start the program and check `dnscrypt.log` for success or errors:
@@ -1105,17 +1094,6 @@ $ sudo ./dnscrypt-proxy -service install
 $ sudo ./dnscrypt-proxy -service start
 
 $ tail -f dnscrypt.log
-[NOTICE] Service started
-[NOTICE] Network connectivity detected
-[NOTICE] Firefox workaround initialized
-[NOTICE] Loading the set of blocking rules from [blacklist.txt]
-[NOTICE] Loading the set of forwarding rules from [forwarding-rules.txt]
-[NOTICE] Loading the set of IP blocking rules from [ip-blacklist.txt]
-[NOTICE] Now listening to 127.0.0.1:4200 [UDP]
-[NOTICE] Now listening to 127.0.0.1:4200 [TCP]
-[NOTICE] [abc] OK (DNSCrypt) - rtt: 12ms
-[NOTICE] Server with the lowest initial latency: abc (rtt: 12ms)
-[NOTICE] dnscrypt-proxy is ready - live servers: 1
 ```
 
 # Security and maintenance
@@ -1170,31 +1148,31 @@ Pay attention to [Debian security advisories](https://lists.debian.org/debian-se
 Install and enable [SELinux](https://wiki.debian.org/SELinux):
 
 ```console
-$ sudo apt install selinux-basics selinux-policy-default
+# apt -y install selinux-basics selinux-policy-default
 
-$ sudo selinux-activate
+# selinux-activate
 
-$ sudo reboot
+# reboot
 ```
 
-Install and enable [AppArmor](https://wiki.debian.org/AppArmor):
+Install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 ```console
-$ sudo apt install apparmor apparmor-profiles apparmor-utils
+# apt -y install apparmor apparmor-profiles apparmor-utils
 
-$ sudo mkdir -p /etc/default/grub.d
+# mkdir -p /etc/default/grub.d
 
-$ echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
+# echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | tee /etc/default/grub.d/apparmor.cfg
 
-$ sudo update-grub
+# update-grub2 && reboot
 ```
 
 Install and enable [Firejail](https://firejail.wordpress.com/):
 
 ```console
-$ sudo apt install firejail firejail-profiles
+# apt -y install firejail firejail-profiles
 
-$ sudo firecfg
+# firecfg
 ```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
