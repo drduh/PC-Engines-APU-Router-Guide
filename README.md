@@ -85,8 +85,6 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 # Updating firmware
 
-**Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
-
 Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
 **Note** As of 2023, PC Engines firmware is no longer being updated - see [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
@@ -189,8 +187,8 @@ Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20212705
-BIOS version v4.14.0.1
+coreboot build 20230131
+BIOS version v4.19.0.1
 ```
 
 From OpenBSD:
@@ -198,7 +196,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe8b020 (13 entries)
-bios0: vendor coreboot version "v4.12.0.2" date 06/28/2020
+bios0: vendor coreboot version "v4.19.0.1" date 01/31/2023
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 6.0
 ```
@@ -207,7 +205,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.14.0.1 05/27/2021
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.19.0.1 01/31/2023
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -286,15 +284,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-11.0.0-amd64-netinst.iso) SHA512SUMS
-5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801 debian-11.0.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-12.2.0-amd64-netinst.iso) SHA512SUMS
+11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-11.0.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801  debian-11.0.0-amd64-netinst.iso
+$ grep $(sha512sum debian-12.2.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -302,13 +300,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-11.0.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-12.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-11.0.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-12.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -1111,11 +1109,11 @@ Install a USB camera and configure [Motion](https://motion-project.github.io/) t
 
 ## OpenBSD
 
-Check open network ports with `doas fstat | grep net` and `doas netstat -a -n -p udp -p tcp`.
+Check open network ports with `doas fstat | grep net` and `doas netstat -a -n -p udp -p tcp`
 
-Check running processes and sessions with `ps -A` and `last`.
+Check running processes and sessions with `ps -A` and `last`
 
-Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
+Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`
 
 OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates by periodically running `doas sysupgrade -s` to reboot and install updates.
 
@@ -1123,9 +1121,9 @@ Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.
 
 ## Debian
 
-Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat -npl`.
+Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat -npl`
 
-Check running processes and logged-in users with `ps -eax` and `last -F`.
+Check running processes and logged-in users with `ps -eax` and `last -F`
 
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and run `sudo apt update && sudo apt upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
