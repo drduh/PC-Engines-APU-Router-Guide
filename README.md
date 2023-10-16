@@ -1,10 +1,8 @@
-**Important** The PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm)
+**Important** After many years of service, the PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm).
 
 This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
 
 I am **not** responsible for anything you do by following any part of this guide!
-
-See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Privacy-Server-Guide).
 
 # Overview
 
@@ -31,6 +29,8 @@ This guide should work on any PC Engines APU model. Here is a suggested parts li
 | [wle200nx](https://pcengines.ch/wle200nx.htm) | Compex WLE200NX miniPCI express card | $19.00
 | 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $2.70
 | 2 x [antsmadb](https://pcengines.ch/antsmadb.htm) | Antenna reverse SMA dual band | $4.10
+
+**Note** WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
@@ -86,8 +86,6 @@ Power on the APU and make note of the firmware version displayed briefly during 
 # Updating firmware
 
 **Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
-
-**Note** WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
 
 Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
@@ -185,7 +183,7 @@ Verifying flash... VERIFIED.
 
 Unplug the USB disk and `reboot`
 
-On reboot, select `F10` and `Payload [setup]`. Press `w` to enable BIOS write protection then `s` to save and reboot.
+**Optional** On reboot, select `F10` and `Payload [setup]` then `w` to enable BIOS write protection then `s` to save and reboot.
 
 Verify the version by checking serial output during boot:
 
@@ -230,18 +228,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install69.img`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/install69.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install74.img`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/install74.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-69-base.pub
-untrusted comment: openbsd 6.9 base public key
-RWQQsAemppS46LT4dNnAtVUZt51ResyNU35n4OH9yl/r7JcR3B75fO4V
+$ cat /etc/signify/openbsd-74-base.pub
+untrusted comment: openbsd 7.4 public key
+RWRoyQmAD08ajTqgzK3UcWaVlwaJMckH9/CshU8Md5pN1GoIrcBdTF+c
 
-$ signify -C -p /etc/signify/openbsd-69-base.pub -x SHA256.sig install69.img
+$ signify -C -p /etc/signify/openbsd-74-base.pub -x SHA256.sig install74.img
 Signature Verified
-install69.img: OK
+install74.img: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -249,37 +247,35 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install69.img of=/dev/rsd2c bs=1m
+$ doas dd if=install74.img of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install69.img of=/dev/sdd bs=1M
+$ sudo dd if=install74.img of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`debian-11.0.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the latest [network installation image](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
+gpg: assuming signed data in 'SHA512SUMS'
+gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
 $ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv DF9B9C49EAA9298432589D76DA87E80D6294BE9B
-gpg: key 0xDA87E80D6294BE9B: 63 signatures not checked due to missing keys
 gpg: key 0xDA87E80D6294BE9B: public key "Debian CD signing key <debian-cd@lists.debian.org>" imported
-gpg: marginals needed: 3  completes needed: 1  trust model: pgp
-gpg: depth: 0  valid:   3  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 3u
 gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
+gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
