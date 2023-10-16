@@ -1,4 +1,6 @@
-This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
+**Important** The PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm)
+
+This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
 
 I am **not** responsible for anything you do by following any part of this guide!
 
@@ -85,26 +87,35 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 **Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
 
-Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/)
+**Note** WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
+
+Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
+
+**Note** As of 2023, PC Engines firmware is no longer being updated - see [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
 Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/tree/master/customer-keys/pcengines/release-keys), then check the file signature:
 
 ```console
-$ curl -LO https://github.com/3mdeb/3mdeb-secpack/raw/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.14-key.asc
+$ curl -LO https://raw.githubusercontent.com/3mdeb/3mdeb-secpack/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.19-key.asc
 
-$ gpg --import pcengines-open-source-firmware-release-4.14-key.asc
+$ gpg --import pcengines-open-source-firmware-release-4.19-key.asc
+gpg: key 0x30A53DE2F5A6D89A: 1 signature not checked due to a missing key
+gpg: key 0x30A53DE2F5A6D89A: public key "PC Engines open-source firmware release 4.19 signing key" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
 
-$ gpg apu4_v4.14.0.3.SHA256.sig
-gpg: Signature made Fri Aug 13 08:55:30 2021 PDT
-gpg:                using RSA key 4825F0B02609904A9F9896BAC06ADEE757C2E791
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.14 Signing Key" [unknown]
+$ gpg apu4_v4.19.0.1.SHA256.sig
+gpg: assuming signed data in 'apu4_v4.19.0.1.SHA256'
+gpg: Signature made Thu 02 Feb 2023 03:22:57 AM PST
+gpg:                using RSA key 05CF36F166C3D676A08AB70F30A53DE2F5A6D89A
+gpg: Good signature from "PC Engines open-source firmware release 4.19 signing key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: 4825 F0B0 2609 904A 9F98  96BA C06A DEE7 57C2 E791
+Primary key fingerprint: 05CF 36F1 66C3 D676 A08A  B70F 30A5 3DE2 F5A6 D89A
 
-$ shasum -a 256 apu4_v4.14.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.14.0.3.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.19.0.1.rom 2>/dev/null | grep -q $(cat apu4_v4.19.0.1.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -164,7 +175,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s 
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.14.0.3.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.19.0.1.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -206,9 +217,9 @@ $ sudo dmesg | grep apu
 ```console
 $ sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.14.0.3.rom
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
 
-$ sudo flashrom -p internal -w apu2_v4.14.0.3.rom
+$ sudo flashrom -p internal -w apu2_v4.19.0.1.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -471,7 +482,7 @@ set tty com0
 After the GRUB menu, output may get stuck at:
 
 ```
-Loading Linux 4.9.0-11-amd64 ...
+Loading Linux 6.1.0-13-amd64 ...
 Loading initial ramdisk ...
 ```
 
@@ -530,22 +541,19 @@ Log in as `root` to get started.
 If necessary, update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
-root@pcengines:~# update-grub2
+root@pcengines:~# update-grub
 Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-4.9.0-11-amd64
-Found initrd image: /boot/initrd.img-4.9.0-11-amd64
+Found linux image: /boot/vmlinuz-6.1.0-13-amd64
+Found initrd image: /boot/initrd.img-6.1.0-13-amd64
 ```
 
-Install any pending updates or install software:
+Install any pending updates and necessary software:
 
 ```console
 root@pcengines:~# apt update && apt -y upgrade
 
 root@pcengines:~# apt -y install \
-    sudo ssh tmux lsof vim zsh git \
-    dnsmasq privoxy hostapd htop lshw \
-    curl dnsutils ntp net-tools tcpdump whois \
-    make autoconf gcc gnupg apt-transport-https
+    tcpdump lsof vim dnsmasq net-tools hostapd lshw firmware-atheros
 ```
 
 **Optional** Change the default login shell to Zsh for the primary user:
@@ -804,7 +812,7 @@ $ doas sh /etc/netstart
 Install the default hostapd configuration:
 
 ```console
-# zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | tee -a /etc/hostapd.conf
+# cat /usr/share/doc/hostapd/examples/hostapd.conf | tee -a /etc/hostapd.conf
 ```
 
 Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
@@ -1026,38 +1034,18 @@ Restart the service and check the log:
 
 # DNSCrypt
 
-Download the Minisign [source code](https://github.com/jedisct1/minisign/releases/latest), build and install it:
-
-```console
-$ sudo apt install -y libsodium-dev pkg-config cmake
-
-$ curl -o minisign-0.9.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.9.tar.gz
-
-$ tar xf minisign-0.9.tar.gz
-
-$ cd minisign-0.9
-
-$ mkdir build
-
-$ cd build
-
-$ cmake ..
-
-$ make
-
-$ sudo make install
-```
+First install `minisign` or build from [source](https://github.com/jedisct1/minisign/releases/latest)
 
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz
 
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz.minisig
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz.minisig
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1628948801   file:dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
+Trusted comment: timestamp:1691773871   file:dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz   hashed
 
 $ tar xf dnscrypt-proxy*.gz
 
@@ -1155,7 +1143,7 @@ Install and enable [SELinux](https://wiki.debian.org/SELinux):
 # reboot
 ```
 
-Install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
+Or, install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 ```console
 # apt -y install apparmor apparmor-profiles apparmor-utils
@@ -1164,7 +1152,7 @@ Install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 # echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | tee /etc/default/grub.d/apparmor.cfg
 
-# update-grub2 && reboot
+# update-grub && reboot
 ```
 
 Install and enable [Firejail](https://firejail.wordpress.com/):
