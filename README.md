@@ -1,8 +1,8 @@
-This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/releases/jessie/amd64/ch01s03.html.en) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
+**Important** After many years of service, the PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm).
+
+This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
 
 I am **not** responsible for anything you do by following any part of this guide!
-
-See also [drduh/Debian-Privacy-Server-Guide](https://github.com/drduh/Debian-Privacy-Server-Guide).
 
 # Overview
 
@@ -29,6 +29,8 @@ This guide should work on any PC Engines APU model. Here is a suggested parts li
 | [wle200nx](https://pcengines.ch/wle200nx.htm) | Compex WLE200NX miniPCI express card | $19.00
 | 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $2.70
 | 2 x [antsmadb](https://pcengines.ch/antsmadb.htm) | Antenna reverse SMA dual band | $4.10
+
+**Note** WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
@@ -83,28 +85,33 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 # Updating firmware
 
-**Important** Recent firmware versions require [disabling IOMMU](https://github.com/pcengines/coreboot/issues/206#issuecomment-436710629) to work properly with WLE200NX wireless cards.
+Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
-Check for the latest firmware version at [pcengines.github.io](https://pcengines.github.io/)
+**Note** As of 2023, PC Engines firmware is no longer being updated - see [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
 Download and import the [firmware signing key](https://github.com/3mdeb/3mdeb-secpack/tree/master/customer-keys/pcengines/release-keys), then check the file signature:
 
 ```console
-$ curl -LO https://github.com/3mdeb/3mdeb-secpack/raw/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.14-key.asc
+$ curl -LO https://raw.githubusercontent.com/3mdeb/3mdeb-secpack/master/customer-keys/pcengines/release-keys/pcengines-open-source-firmware-release-4.19-key.asc
 
-$ gpg --import pcengines-open-source-firmware-release-4.14-key.asc
+$ gpg --import pcengines-open-source-firmware-release-4.19-key.asc
+gpg: key 0x30A53DE2F5A6D89A: 1 signature not checked due to a missing key
+gpg: key 0x30A53DE2F5A6D89A: public key "PC Engines open-source firmware release 4.19 signing key" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
 
-$ gpg apu4_v4.14.0.3.SHA256.sig
-gpg: Signature made Fri Aug 13 08:55:30 2021 PDT
-gpg:                using RSA key 4825F0B02609904A9F9896BAC06ADEE757C2E791
-gpg: Good signature from "PC Engines Open Source Firmware Release 4.14 Signing Key" [unknown]
+$ gpg apu4_v4.19.0.1.SHA256.sig
+gpg: assuming signed data in 'apu4_v4.19.0.1.SHA256'
+gpg: Signature made Thu 02 Feb 2023 03:22:57 AM PST
+gpg:                using RSA key 05CF36F166C3D676A08AB70F30A53DE2F5A6D89A
+gpg: Good signature from "PC Engines open-source firmware release 4.19 signing key" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
 gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: 4825 F0B0 2609 904A 9F98  96BA C06A DEE7 57C2 E791
+Primary key fingerprint: 05CF 36F1 66C3 D676 A08A  B70F 30A5 3DE2 F5A6 D89A
 
-$ shasum -a 256 apu4_v4.14.0.3.rom 2>/dev/null | grep -q $(cat apu4_v4.14.0.3.SHA256 | awk '{print $1}') && echo ok
+$ shasum -a 256 apu4_v4.19.0.1.rom 2>/dev/null | grep -q $(cat apu4_v4.19.0.1.SHA256 | awk '{print $1}') && echo ok
 ok
 ```
 
@@ -164,7 +171,7 @@ root@pcengines:/media/SYSLINUX# flashrom -p internal -r apu4.rom.$(dmidecode -s 
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading flash... done.
 
-root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.14.0.3.rom
+root@pcengines:/media/SYSLINUX# flashrom -p internal -w apu4_v4.19.0.1.rom
 [...]
 Found Winbond flash chip "W25Q64.V" (8192 kB, SPI) mapped at physical address 0xff800000.
 Reading old flash chip contents... done.
@@ -174,14 +181,14 @@ Verifying flash... VERIFIED.
 
 Unplug the USB disk and `reboot`
 
-On reboot, select `F10` and `Payload [setup]`. Press `w` to enable BIOS write protection then `s` to save and reboot.
+**Optional** On reboot, select `F10` and `Payload [setup]` then `w` to enable BIOS write protection then `s` to save and reboot.
 
 Verify the version by checking serial output during boot:
 
 ```
 PC Engines apu4
-coreboot build 20212705
-BIOS version v4.14.0.1
+coreboot build 20230131
+BIOS version v4.19.0.1
 ```
 
 From OpenBSD:
@@ -189,7 +196,7 @@ From OpenBSD:
 ```console
 $ dmesg | grep bios
 bios0 at mainbus0: SMBIOS rev. 2.8 @ 0xcfe8b020 (13 entries)
-bios0: vendor coreboot version "v4.12.0.2" date 06/28/2020
+bios0: vendor coreboot version "v4.19.0.1" date 01/31/2023
 bios0: PC Engines apu4
 acpi0 at bios0: ACPI 6.0
 ```
@@ -198,7 +205,7 @@ From Debian:
 
 ```console
 $ sudo dmesg | grep apu
-[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.14.0.1 05/27/2021
+[    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.19.0.1 01/31/2023
 ```
 
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
@@ -206,9 +213,9 @@ $ sudo dmesg | grep apu
 ```console
 $ sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.14.0.3.rom
+$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
 
-$ sudo flashrom -p internal -w apu2_v4.14.0.3.rom
+$ sudo flashrom -p internal -w apu2_v4.19.0.1.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -219,18 +226,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install69.img`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/install69.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/6.9/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install74.img`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/install74.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-69-base.pub
-untrusted comment: openbsd 6.9 base public key
-RWQQsAemppS46LT4dNnAtVUZt51ResyNU35n4OH9yl/r7JcR3B75fO4V
+$ cat /etc/signify/openbsd-74-base.pub
+untrusted comment: openbsd 7.4 public key
+RWRoyQmAD08ajTqgzK3UcWaVlwaJMckH9/CshU8Md5pN1GoIrcBdTF+c
 
-$ signify -C -p /etc/signify/openbsd-69-base.pub -x SHA256.sig install69.img
+$ signify -C -p /etc/signify/openbsd-74-base.pub -x SHA256.sig install74.img
 Signature Verified
-install69.img: OK
+install74.img: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -238,37 +245,35 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install69.img of=/dev/rsd2c bs=1m
+$ doas dd if=install74.img of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install69.img of=/dev/sdd bs=1M
+$ sudo dd if=install74.img of=/dev/sdd bs=1M
 ```
 
 ## Debian
 
-Download the network installation image - [`debian-11.0.0-amd64-netinst.iso`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
+Download the latest [network installation image](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/) - as well as [`SHA512SUMS`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS) and [`SHA512SUMS.sign`](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS.sign) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
+gpg: assuming signed data in 'SHA512SUMS'
+gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
 $ gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv DF9B9C49EAA9298432589D76DA87E80D6294BE9B
-gpg: key 0xDA87E80D6294BE9B: 63 signatures not checked due to missing keys
 gpg: key 0xDA87E80D6294BE9B: public key "Debian CD signing key <debian-cd@lists.debian.org>" imported
-gpg: marginals needed: 3  completes needed: 1  trust model: pgp
-gpg: depth: 0  valid:   3  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 3u
 gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat Aug 14 13:22:04 2021 PDT
+gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -279,15 +284,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-11.0.0-amd64-netinst.iso) SHA512SUMS
-5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801 debian-11.0.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-12.2.0-amd64-netinst.iso) SHA512SUMS
+11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-11.0.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:5f6aed67b159d7ccc1a90df33cc8a314aa278728a6f50707ebf10c02e46664e383ca5fa19163b0a1c6a4cb77a39587881584b00b45f512b4a470f1138eaa1801  debian-11.0.0-amd64-netinst.iso
+$ grep $(sha512sum debian-12.2.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -295,13 +300,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-11.0.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+$ doas dd if=debian-12.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-11.0.0-amd64-netinst.iso of=/dev/sdd bs=1M
+$ sudo dd if=debian-12.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -471,7 +476,7 @@ set tty com0
 After the GRUB menu, output may get stuck at:
 
 ```
-Loading Linux 4.9.0-11-amd64 ...
+Loading Linux 6.1.0-13-amd64 ...
 Loading initial ramdisk ...
 ```
 
@@ -530,22 +535,19 @@ Log in as `root` to get started.
 If necessary, update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
-root@pcengines:~# update-grub2
+root@pcengines:~# update-grub
 Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-4.9.0-11-amd64
-Found initrd image: /boot/initrd.img-4.9.0-11-amd64
+Found linux image: /boot/vmlinuz-6.1.0-13-amd64
+Found initrd image: /boot/initrd.img-6.1.0-13-amd64
 ```
 
-Install any pending updates or install software:
+Install any pending updates and necessary software:
 
 ```console
 root@pcengines:~# apt update && apt -y upgrade
 
 root@pcengines:~# apt -y install \
-    sudo ssh tmux lsof vim zsh git \
-    dnsmasq privoxy hostapd htop lshw \
-    curl dnsutils ntp net-tools tcpdump whois \
-    make autoconf gcc gnupg apt-transport-https
+    tcpdump lsof vim dnsmasq net-tools hostapd lshw firmware-atheros
 ```
 
 **Optional** Change the default login shell to Zsh for the primary user:
@@ -804,7 +806,7 @@ $ doas sh /etc/netstart
 Install the default hostapd configuration:
 
 ```console
-# zcat /usr/share/doc/hostapd/examples/hostapd.conf.gz | tee -a /etc/hostapd.conf
+# cat /usr/share/doc/hostapd/examples/hostapd.conf | tee -a /etc/hostapd.conf
 ```
 
 Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
@@ -1026,38 +1028,18 @@ Restart the service and check the log:
 
 # DNSCrypt
 
-Download the Minisign [source code](https://github.com/jedisct1/minisign/releases/latest), build and install it:
-
-```console
-$ sudo apt install -y libsodium-dev pkg-config cmake
-
-$ curl -o minisign-0.9.tar.gz -Lf https://github.com/jedisct1/minisign/archive/0.9.tar.gz
-
-$ tar xf minisign-0.9.tar.gz
-
-$ cd minisign-0.9
-
-$ mkdir build
-
-$ cd build
-
-$ cmake ..
-
-$ make
-
-$ sudo make install
-```
+First install `minisign` or build from [source](https://github.com/jedisct1/minisign/releases/latest)
 
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz
 
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.0/dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz.minisig
+$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz.minisig
 
 $ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1628948801   file:dnscrypt-proxy-linux_x86_64-2.1.0.tar.gz
+Trusted comment: timestamp:1691773871   file:dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz   hashed
 
 $ tar xf dnscrypt-proxy*.gz
 
@@ -1127,11 +1109,11 @@ Install a USB camera and configure [Motion](https://motion-project.github.io/) t
 
 ## OpenBSD
 
-Check open network ports with `doas fstat | grep net` and `doas netstat -a -n -p udp -p tcp`.
+Check open network ports with `doas fstat | grep net` and `doas netstat -a -n -p udp -p tcp`
 
-Check running processes and sessions with `ps -A` and `last`.
+Check running processes and sessions with `ps -A` and `last`
 
-Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`.
+Pay attention to [OpenBSD errata](https://www.openbsd.org/errata.html) and apply security fixes periodically with `doas syspatch`
 
 OpenBSD releases occur approximately every six months - [follow current snapshots](https://www.openbsd.org/faq/current.html) for faster updates by periodically running `doas sysupgrade -s` to reboot and install updates.
 
@@ -1139,9 +1121,9 @@ Check temperatures with `sysctl hw.sensors` or configure [sensorsd](https://man.
 
 ## Debian
 
-Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat -npl`.
+Check open ports and listening programs with `sudo lsof -Pni` and `sudo netstat -npl`
 
-Check running processes and logged-in users with `ps -eax` and `last -F`.
+Check running processes and logged-in users with `ps -eax` and `last -F`
 
 Pay attention to [Debian security advisories](https://lists.debian.org/debian-security-announce/recent) and run `sudo apt update && sudo apt upgrade` periodically or configure [unattended upgrades](https://wiki.debian.org/UnattendedUpgrades).
 
@@ -1155,7 +1137,7 @@ Install and enable [SELinux](https://wiki.debian.org/SELinux):
 # reboot
 ```
 
-Install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
+Or, install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 ```console
 # apt -y install apparmor apparmor-profiles apparmor-utils
@@ -1164,7 +1146,7 @@ Install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 # echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | tee /etc/default/grub.d/apparmor.cfg
 
-# update-grub2 && reboot
+# update-grub && reboot
 ```
 
 Install and enable [Firejail](https://firejail.wordpress.com/):
