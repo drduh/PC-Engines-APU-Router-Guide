@@ -443,7 +443,7 @@ set tty com0
 After the GRUB menu, output may get stuck at:
 
 ```
-Loading Linux 6.1.0-13-amd64 ...
+Loading Linux 6.1.0-23-amd64 ...
 Loading initial ramdisk ...
 ```
 
@@ -502,25 +502,21 @@ Log in as `root` to get started.
 If necessary, update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
-root@pcengines:~# update-grub
-Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-6.1.0-13-amd64
-Found initrd image: /boot/initrd.img-6.1.0-13-amd64
+update-grub
 ```
 
 Install any pending updates and necessary software:
 
 ```console
-root@pcengines:~# apt update && apt -y upgrade
+apt update && apt -y upgrade
 
-root@pcengines:~# apt -y install \
-    tcpdump lsof vim dnsmasq net-tools hostapd lshw firmware-atheros
+apt -y install lshw lsof vim zsh git sudo dnsmasq net-tools iptables tcpdump hostapd firmware-atheros
 ```
 
-**Optional** Change the default login shell to Zsh for the primary user:
+**Optional** Change the default login shell to zsh for the primary user:
 
 ```
-root@pcengines:~# chsh -s /usr/bin/zsh sysadm
+chsh -s /usr/bin/zsh sysadm
 ```
 
 # Configure network interfaces
@@ -556,15 +552,7 @@ $ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/ho
 On the APU and on another computer, determine the interface names available:
 
 ```console
-root@pcengines:~# lshw -C network | grep "logical name"
-       logical name: enp1s0
-       logical name: enp2s0
-       logical name: enp3s0
-       logical name: wlp5s0
-
-user@localhost$ sudo lshw -C network | grep "logical name"
-       logical name: eno1
-       logical name: enp3s0
+lshw -C network | grep "logical name"
 ```
 
 On the APU, edit `/etc/network/interfaces` to append:
@@ -582,9 +570,9 @@ Where `enp2s0` is the network interface one port away from the serial port.
 Restart networking and bring up the interface:
 
 ```console
-root@pcengines:~# service networking restart
+service networking restart
 
-root@pcengines:~# ifup enp2s0
+ifup enp2s0
 ```
 
 On another Linux computer, edit `/etc/network/interfaces` to append:
@@ -629,7 +617,7 @@ netmask 255.255.255.0
 hostapd /etc/hostapd.conf
 ```
 
-Log out as `root` or reboot to continue.
+Reboot after verifying network connectivity.
 
 # Configure SSH
 
@@ -852,13 +840,13 @@ Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
 
 ```console
-cp config/scripts/iptables.sh /etc
+sudo cp config/scripts/iptables.sh /etc
 
-vim /etc/iptables.sh
+sudo vim /etc/iptables.sh
 
-chmod +x /etc/iptables.sh
+sudo chmod +x /etc/iptables.sh
 
-/etc/iptables.sh
+sudo /etc/iptables.sh
 ```
 
 Save the firewall rules to apply them on boot:
