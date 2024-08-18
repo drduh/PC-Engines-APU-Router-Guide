@@ -226,11 +226,11 @@ Download the installation image - [`amd64/install75.img`](https://cdn.openbsd.or
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-74-base.pub
-untrusted comment: openbsd 7.4 public key
-RWRoyQmAD08ajTqgzK3UcWaVlwaJMckH9/CshU8Md5pN1GoIrcBdTF+c
+cat /etc/signify/openbsd-75-base.pub
+untrusted comment: openbsd 7.5 base public key
+RWRGj1pRpprAfgeF/rgld4ubduChLvTkigA1Zj7WLDsVA4qfYSWOEI8q
 
-$ signify -C -p /etc/signify/openbsd-74-base.pub -x SHA256.sig install75.img
+signify -C -p /etc/signify/openbsd-75-base.pub -x SHA256.sig install75.img
 Signature Verified
 install75.img: OK
 ```
@@ -268,7 +268,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
+gpg: Signature made Sat 29 Jun 2024 01:50:21 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -279,15 +279,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-12.2.0-amd64-netinst.iso) SHA512SUMS
-11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
+grep $(sha512 -q debian-12.6.0-amd64-netinst.iso) SHA512SUMS
+712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-12.2.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
+grep $(sha512sum debian-12.6.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -295,13 +295,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-12.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+doas dd if=debian-12.6.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-12.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
+sudo dd if=debian-12.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -534,9 +534,9 @@ echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
 Configure an OpenBSD client with DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html) or using a static address:
 
 ```console
-$ doas ifconfig em1 10.8.1.4 255.255.255.0
+doas ifconfig em1 10.8.1.4 255.255.255.0
 
-$ ping -c 1 10.8.1.1
+ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=255 time=0.845 ms
 ```
@@ -544,7 +544,7 @@ PING 10.8.1.1 (10.8.1.1): 56 data bytes
 **Optional** Randomize MAC addresses on boot:
 
 ```console
-$ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
+echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
 ```
 
 ## Debian
@@ -602,7 +602,7 @@ inet 10.8.1.4 255.255.255.0
 It should now be possible to ping the router:
 
 ```console
-$ ping -c 1 10.8.1.1
+ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=64 time=0.519 ms
 ```
@@ -852,7 +852,7 @@ sudo /etc/iptables.sh
 Save the firewall rules to apply them on boot:
 
 ```console
-iptables-save | tee /etc/iptables/rules.v4
+sudo iptables-save | tee /etc/iptables/rules.v4
 ```
 
 # Privoxy
@@ -864,27 +864,21 @@ iptables-save | tee /etc/iptables/rules.v4
 Install Privoxy:
 
 ```console
-apt -y install privoxy
+sudo apt -y install privoxy
 ```
 
 Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
 
 ```console
-cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
+sudo cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
 ```
 
 Restart the service and check the log:
 
 ```console
-service privoxy restart
+sudo service privoxy restart
 
-tail -f /var/log/privoxy/logfile
-[...]
-Info: Listening on port 8118 on IP address 127.0.0.1
-Info: Listening on port 8118 on IP address 10.8.1.1
-Info: Listening on port 8118 on IP address 172.16.1.1
-Request: example.com/
-Crunch: Redirected: http://bbc.com/
+sudo tail -f /var/log/privoxy/logfile
 ```
 
 # Lighttpd
@@ -896,22 +890,21 @@ Crunch: Redirected: http://bbc.com/
 Install Lighttpd with ModMagnet:
 
 ```console
-apt -y install lighttpd lighttpd-mod-magnet
+sudo apt -y install lighttpd lighttpd-mod-magnet
 ```
 
 Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
 
 ```console
-cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
+sudo cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
 ```
 
 Restart the service and check the log:
 
 ```console
-service lighttpd restart
+sudo service lighttpd restart
 
-cat /var/log/lighttpd/error.log
-2019-01-01 12:00:00: (log.c.217) server started
+sudo cat /var/log/lighttpd/error.log
 ```
 
 # DNSCrypt
@@ -1018,31 +1011,31 @@ Pay attention to [Debian security advisories](https://lists.debian.org/debian-se
 Install and enable [SELinux](https://wiki.debian.org/SELinux):
 
 ```console
-apt -y install selinux-basics selinux-policy-default
+sudo apt -y install selinux-basics selinux-policy-default
 
-selinux-activate
+sudo selinux-activate
 
-reboot
+sudo reboot
 ```
 
 Or, install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 ```console
-apt -y install apparmor apparmor-profiles apparmor-utils
+sudo apt -y install apparmor apparmor-profiles apparmor-utils
 
-mkdir -p /etc/default/grub.d
+sudo mkdir -p /etc/default/grub.d
 
-echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | tee /etc/default/grub.d/apparmor.cfg
+echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
 
-update-grub && reboot
+sudo update-grub && sudo reboot
 ```
 
 Install and enable [Firejail](https://firejail.wordpress.com/):
 
 ```console
-apt -y install firejail firejail-profiles
+sudo apt -y install firejail firejail-profiles
 
-firecfg
+sudo firecfg
 ```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
