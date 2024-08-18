@@ -16,8 +16,6 @@ The completed router configuration will enable:
 
 ## Hardware
 
-Order directly from [PC Engines](https://www.pcengines.ch/order.htm) or through a reseller.
-
 This guide should work on any PC Engines APU model. Here is a suggested parts list:
 
 | Part | Description | Cost
@@ -66,19 +64,19 @@ The APU serial connection uses 115200 baud rate, 8N1 (8 data bits, no parity, 1 
 On OpenBSD, use [cu](https://man.openbsd.org/cu):
 
 ```console
-$ doas cu -r -s 115200 -l cuaU0
+doas cu -r -s 115200 -l cuaU0
 ```
 
 On Linux, use [screen](https://www.gnu.org/software/screen/manual/screen.html):
 
 ```console
-$ screen /dev/ttyUSB0 115200 8N1
+screen /dev/ttyUSB0 115200 8N1
 ```
 
 Or use [minicom](https://linux.die.net/man/1/minicom):
 
 ```console
-$ sudo minicom -D /dev/ttyUSB0
+sudo minicom -D /dev/ttyUSB0
 ```
 
 Power on the APU and make note of the firmware version displayed briefly during boot.
@@ -118,25 +116,22 @@ ok
 Mount a USB disk and write the TinyCore image, copy the `.rom` file:
 
 ```console
-$ curl -O https://pcengines.ch/file/apu2-tinycore6.4.img.gz
+curl -O https://pcengines.ch/file/apu2-tinycore6.4.img.gz
 
-$ gzip -d apu2-tinycore6.4.img.gz
+gzip -d apu2-tinycore6.4.img.gz
 
-$ sha256sum apu2-tinycore6.4.img
+sha256sum apu2-tinycore6.4.img
 f5a20eeb01dfea438836e48cb15a18c5780194fed6bf21564fc7c894a1ac06d7  apu2-tinycore6.4.img
 
-$ sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
-511+0 records in
-511+0 records out
-535822336 bytes (536 MB, 511 MiB) copied, 22.9026 s, 23.4 MB/s
+sudo dd if=apu2-tinycore6.4.img of=/dev/sdd bs=1M
 
-$ sudo mkdir /mnt/usb
+sudo mkdir /mnt/usb
 
-$ sudo mount /dev/sdd1 /mnt/usb
+sudo mount /dev/sdd1 /mnt/usb
 
-$ sudo cp -v apu4_*.rom /mnt/usb
+sudo cp -v apu4_*.rom /mnt/usb
 
-$ sudo umount /mnt/usb
+sudo umount /mnt/usb
 ```
 
 Connect the USB disk to the APU, press `F10` at boot and select the USB disk:
@@ -211,11 +206,11 @@ $ sudo dmesg | grep apu
 **Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
 
 ```console
-$ sudo apt install flashrom
+sudo apt install flashrom
 
-$ wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
+wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
 
-$ sudo flashrom -p internal -w apu2_v4.19.0.1.rom
+sudo flashrom -p internal -w apu2_v4.19.0.1.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -226,18 +221,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install74.img`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/install74.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.4/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install75.img`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/install75.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/SHA256.sig) files.
 
 Verify the signatures file and hash of the installation image:
 
 ```console
-$ cat /etc/signify/openbsd-74-base.pub
-untrusted comment: openbsd 7.4 public key
-RWRoyQmAD08ajTqgzK3UcWaVlwaJMckH9/CshU8Md5pN1GoIrcBdTF+c
+cat /etc/signify/openbsd-75-base.pub
+untrusted comment: openbsd 7.5 base public key
+RWRGj1pRpprAfgeF/rgld4ubduChLvTkigA1Zj7WLDsVA4qfYSWOEI8q
 
-$ signify -C -p /etc/signify/openbsd-74-base.pub -x SHA256.sig install74.img
+signify -C -p /etc/signify/openbsd-75-base.pub -x SHA256.sig install75.img
 Signature Verified
-install74.img: OK
+install75.img: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -245,13 +240,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```console
-$ doas dd if=install74.img of=/dev/rsd2c bs=1m
+doas dd if=install75.img of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```console
-$ sudo dd if=install74.img of=/dev/sdd bs=1M
+sudo dd if=install75.img of=/dev/sdd bs=1M
 ```
 
 ## Debian
@@ -273,7 +268,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
+gpg: Signature made Sat 29 Jun 2024 01:50:21 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -284,15 +279,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-$ grep $(sha512 -q debian-12.2.0-amd64-netinst.iso) SHA512SUMS
-11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
+grep $(sha512 -q debian-12.6.0-amd64-netinst.iso) SHA512SUMS
+712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-$ grep $(sha512sum debian-12.2.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:11d733d626d1c7d3b20cfcccc516caff2cbc57c81769d56434aab958d4d9b3af59106bc0796252aeefede8353e2582378e08c65e35a36769d5cf673c5444f80e  debian-12.2.0-amd64-netinst.iso
+grep $(sha512sum debian-12.6.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -300,13 +295,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```console
-$ doas dd if=debian-12.2.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+doas dd if=debian-12.6.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```console
-$ sudo dd if=debian-12.2.0-amd64-netinst.iso of=/dev/sdd bs=1M
+sudo dd if=debian-12.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -335,28 +330,26 @@ boot> [Press Enter]
 Select the Install option:
 
 ```console
-Welcome to the OpenBSD/amd64 6.7 installation program.
+Welcome to the OpenBSD/amd64 7.5 installation program.
 (I)nstall, (U)pgrade, (A)utoinstall or (S)hell? I
 ```
 
-When presented with a list of network interfaces, `em0` or `re0` is the Ethernet port closest to the serial port:
+When presented with a list of network interfaces, `em0` is the Ethernet port closest to the serial port:
 
 ```console
 Available network interfaces are: em0 em1 em2 em3 vlan0.
-
-Available network interfaces are: re0 re1 re2 athn0 vlan0.
 ```
 
 Use DHCP or configure a static route:
 
 ```console
-Which network interface do you wish to configure? (or 'done') [re0]
-IPv4 address for re0? (or 'dhcp' or 'none') [dhcp] 192.168.1.2
-Netmask for re0? [255.255.255.0]
-IPv6 address for re0? (or 'autoconf' or 'none') [none]
-Available network interfaces are: re0 re1 re2 athn0 vlan0.
-Which network interface do you wish to configure? (or 'done') [done]
-Default IPv4 route? (IPv4 address or none) 192.168.1.1
+Network interface to configure? (name, lladdr, '?', or 'done') [done] em0
+IPv4 address for em0? (or 'autoconf' or 'none') [autoconf] 192.168.1.2
+Netmask for em0? [255.255.255.0]
+IPv6 address for em0? (or 'autoconf' or 'none') [none]
+Available network interfaces are: em0 em1 em2 em3 vlan0.
+Network interface to configure? (name, lladdr, '?', or 'done') [done]
+Default IPv4 route? (IPv4 address or 'none') 192.168.1.1
 add net default: gateway 192.168.1.1
 DNS domain name? (e.g. 'example.com') [my.domain] local
 DNS nameservers? (IP address list or 'none') [none] 192.168.1.1
@@ -377,56 +370,30 @@ Password for user sysadm? (will not echo)
 Password for user sysadm? (again)
 ```
 
-Select the internal mSATA disk and configure the partions:
+Select the internal mSATA disk and default options for partitioning:
 
 ```console
-Available disks are: sd0 sd1 sd2.
+Available disks are: sd0 sd1.
 Which disk is the root disk? ('?' for details) [sd0] ?
-sd0: ATA, SB2, SBFM naa.0000000000000000 (119.2G)
-sd1: Samsung, Flash Drive DUO, 1100 serial.0000000000000000 (29.9G)
-sd2: Multiple, Card Reader, 1.00 serial.0000000000000000
-Available disks are: sd0 sd1 sd2.
+    sd0: ATA, SB2, SBFM naa.0000000000000000 (119.2G)
+    sd1: PNY, USB 2.0 FD, 1100 serial.00000000000000000000 (29.9G)
+Available disks are: sd0 sd1.
 Which disk is the root disk? ('?' for details) [sd0]
-No valid MBR or GPT.
-Use (W)hole disk MBR, whole disk (G)PT or (E)dit? [whole] W
-Setting OpenBSD MBR partition to whole sd0...done.
-The auto-allocated layout for sd0 is:
-#                size           offset  fstype [fsize bsize   cpg]
-  a:             1.0G               64  4.2BSD   2048 16384     1 # /
-  b:             4.2G          2097216    swap
-  c:           119.2G                0  unused
-  d:             4.0G         10941728  4.2BSD   2048 16384     1 # /tmp
-  e:            11.9G         19330336  4.2BSD   2048 16384     1 # /var
-  f:             6.0G         44359392  4.2BSD   2048 16384     1 # /usr
-  g:             1.0G         56942304  4.2BSD   2048 16384     1 # /usr/X11R6
-  h:            17.3G         59039456  4.2BSD   2048 16384     1 # /usr/local
-  i:             2.0G         95334496  4.2BSD   2048 16384     1 # /usr/src
-  j:             6.0G         99528800  4.2BSD   2048 16384     1 # /usr/obj
-  k:            65.8G        112111712  4.2BSD   2048 16384     1 # /home
 ```
 
-**Note** The 111.8G "unused" space partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
-
-Select "Auto layout" to continue, then Enter to finish disk setup.
-
-```console
-Use (A)uto layout, (E)dit auto layout, or create (C)ustom layout? [a] A
-[...]
-Available disks are: sd1 sd2.
-Which disk do you wish to initialize? (or 'done') [done]
-```
+**Note** The "unused" partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
 
 Select a [mirror](https://www.openbsd.org/ftp.html) and start the installation:
 
 ```console
 HTTP Server? (hostname, list#, 'done' or '?') cdn.openbsd.org
-Server directory? [pub/OpenBSD/6.7/amd64]
+Server directory? [pub/OpenBSD/7.5/amd64]
 
 Select sets by entering a set name, a file name pattern or 'all'. De-select
 sets by prepending a '-', e.g.: '-game*'. Selected sets are labelled '[X]'.
-    [X] bsd           [X] base67.tgz    [X] game67.tgz    [X] xfont67.tgz
-    [X] bsd.mp        [X] comp67.tgz    [X] xbase67.tgz   [X] xserv67.tgz
-    [X] bsd.rd        [X] man67.tgz     [X] xshare67.tgz
+    [X] bsd           [X] base75.tgz    [X] game75.tgz    [X] xfont75.tgz
+    [X] bsd.mp        [X] comp75.tgz    [X] xbase75.tgz   [X] xserv75.tgz
+    [X] bsd.rd        [X] man75.tgz     [X] xshare75.tgz
 Set name(s)? (or 'abort' or 'done') [done]
 ```
 
@@ -476,7 +443,7 @@ set tty com0
 After the GRUB menu, output may get stuck at:
 
 ```
-Loading Linux 6.1.0-13-amd64 ...
+Loading Linux 6.1.0-23-amd64 ...
 Loading initial ramdisk ...
 ```
 
@@ -485,7 +452,7 @@ If so, reboot and press `e` at the GRUB menu to enter edit mode, scroll down and
 ```
 console=ttyS0,115200n8
 ```
-    
+
 **Note** If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
 
 * `Control-B` to move left
@@ -501,16 +468,16 @@ Press `Control-X` to continue booting and you should see console output.
 
 ## OpenBSD
 
-Log in as `root` and install any [pending updates](https://man.openbsd.org/syspatch), unless already [following -current](https://www.openbsd.org/faq/current.html):
+Log in as `root` and install [pending updates](https://man.openbsd.org/syspatch) or [switch to -current](https://www.openbsd.org/faq/current.html):
 
 ```console
-# syspatch
+syspatch
 ```
 
 Install any pending [firmware updates](https://man.openbsd.org/fw_update):
 
 ```console
-# fw_update
+fw_update
 ```
 
 Edit `/etc/doas.conf` to allow the regular user to run [privileged commands](https://man.openbsd.org/doas.conf) without a password:
@@ -523,10 +490,10 @@ permit nopass keepenv root
 Install any needed software:
 
 ```console
-# pkg_add vim zsh curl free pftop vnstat
+pkg_add bash zsh vim curl free pftop vnstat
 ```
 
-Log out as `root` and reboot when finished.
+Reboot to complete any pending updates.
 
 ## Debian
 
@@ -535,47 +502,41 @@ Log in as `root` to get started.
 If necessary, update GRUB by editing `/etc/default/grub` and removing or replacing `quiet` with `console=ttyS0,115200n8` then update the configuration:
 
 ```console
-root@pcengines:~# update-grub
-Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-6.1.0-13-amd64
-Found initrd image: /boot/initrd.img-6.1.0-13-amd64
+update-grub
 ```
 
 Install any pending updates and necessary software:
 
 ```console
-root@pcengines:~# apt update && apt -y upgrade
+apt update && apt -y upgrade
 
-root@pcengines:~# apt -y install \
-    tcpdump lsof vim dnsmasq net-tools hostapd lshw firmware-atheros
+apt -y install lshw lsof vim zsh git sudo dnsmasq net-tools iptables tcpdump hostapd firmware-atheros
 ```
 
-**Optional** Change the default login shell to Zsh for the primary user:
+**Optional** Change the default login shell to zsh for the primary user:
 
 ```
-root@pcengines:~# chsh -s /usr/bin/zsh sysadm
+chsh -s /usr/bin/zsh sysadm
 ```
 
 # Configure network interfaces
-
-Ethernet or wireless network interfaces can now be configured.
 
 ## OpenBSD
 
 On the APU, set a local network interface address and make it permanent:
 
 ```console
-$ doas ifconfig em1 10.8.1.1 255.255.255.0
+doas ifconfig em1 10.8.1.1 255.255.255.0
 
-$ echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
+echo "inet 10.8.1.1 255.255.255.0" | doas tee /etc/hostname.em1
 ```
 
 Configure an OpenBSD client with DHCP by following the [Networking FAQ](https://www.openbsd.org/faq/faq6.html) or using a static address:
 
 ```console
-$ doas ifconfig em1 10.8.1.4 255.255.255.0
+doas ifconfig em1 10.8.1.4 255.255.255.0
 
-$ ping -c 1 10.8.1.1
+ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=255 time=0.845 ms
 ```
@@ -583,7 +544,7 @@ PING 10.8.1.1 (10.8.1.1): 56 data bytes
 **Optional** Randomize MAC addresses on boot:
 
 ```console
-$ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
+echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/hostname.em2
 ```
 
 ## Debian
@@ -591,15 +552,7 @@ $ echo "lladdr random" | doas tee -a /etc/hostname.em0 /etc/hostname.em1 /etc/ho
 On the APU and on another computer, determine the interface names available:
 
 ```console
-root@pcengines:~# lshw -C network | grep "logical name"
-       logical name: enp1s0
-       logical name: enp2s0
-       logical name: enp3s0
-       logical name: wlp5s0
-
-user@localhost$ sudo lshw -C network | grep "logical name"
-       logical name: eno1
-       logical name: enp3s0
+lshw -C network | grep "logical name"
 ```
 
 On the APU, edit `/etc/network/interfaces` to append:
@@ -617,9 +570,9 @@ Where `enp2s0` is the network interface one port away from the serial port.
 Restart networking and bring up the interface:
 
 ```console
-root@pcengines:~# service networking restart
+service networking restart
 
-root@pcengines:~# ifup enp2s0
+ifup enp2s0
 ```
 
 On another Linux computer, edit `/etc/network/interfaces` to append:
@@ -635,9 +588,9 @@ gateway 10.8.1.1
 Then also restart networking and bring up the interface:
 
 ```console
-$ sudo service networking restart
+sudo service networking restart
 
-$ sudo ifup eno1
+sudo ifup eno1
 ```
 
 Or on another OpenBSD computer, edit `/etc/hostname.em0` to append:
@@ -649,7 +602,7 @@ inet 10.8.1.4 255.255.255.0
 It should now be possible to ping the router:
 
 ```console
-$ ping -c 1 10.8.1.1
+ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=64 time=0.519 ms
 ```
@@ -664,7 +617,7 @@ netmask 255.255.255.0
 hostapd /etc/hostapd.conf
 ```
 
-Log out as `root` or reboot to continue.
+Reboot after verifying network connectivity.
 
 # Configure SSH
 
@@ -682,26 +635,21 @@ Permission denied (publickey,password).
 If using a [YubiKey](https://github.com/drduh/YubiKey-Guide), copy its public key to clipboard:
 
 ```console
-$ ssh-add -L | awk '{print $1" "$2}' | xclip
+ssh-add -L | awk '{print $1" "$2}' | xclip
 ```
 
 Or generate a new SSH key on the client and copy it to clipboard:
 
 ```console
-$ ssh-keygen -f ~/.ssh/pcengines -C 'sysadm'
-Generating public/private rsa key pair.
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in .ssh/pcengines.
-Your public key has been saved in .ssh/pcengines.pub.
+ssh-keygen -f -C 'sysadm' ~/.ssh/pcengines
 
-$ xclip ~/.ssh/pcengines.pub
+xclip ~/.ssh/pcengines.pub
 ```
 
 On the APU, over the serial connection, as the primary user (e.g., `sysadm` - *not* `root`), configure SSH to accept that key by pasting it into `~/.ssh/authorized_keys`:
 
 ```console
-$ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
+mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
 [Paste clipboard contents using the middle mouse button or Shift-Insert]
 [Then press Control-D to save]
 ```
@@ -732,19 +680,16 @@ Host pcengines
 Connect using the new alias:
 
 ```console
-$ ssh pcengines
-Host key fingerprint is SHA256:AAAAA
-Last login: Mon Jan 1 12:00:00 2018 from 10.8.1.2
-sysadm@pcengines~ %
+ssh pcengines
 ```
 
-**Optional** Clone my configuration repository for the rest of the setup:
+Download configuration files:
 
 ```console
-$ git clone https://github.com/drduh/config
+git clone https://github.com/drduh/config
 ```
 
-The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting, otherwise anyone can plug in the serial cable to assume your session.
+The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting, otherwise anyone can plug in the serial cable to assume your session without a passphrase.
 
 # DHCP and DNS
 
@@ -753,19 +698,19 @@ The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or
 Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for a configuration example, including blocked domains:
 
 ```console
-# cp config/dnsmasq.conf /etc/dnsmasq.conf
+cp config/dnsmasq.conf /etc/dnsmasq.conf
 
-# cat config/domains/* | tee -a /etc/dnsmasq.conf
+cat config/domains/* | tee -a /etc/dnsmasq.conf
 
-# vim /etc/dnsmasq.conf
+vim /etc/dnsmasq.conf
 ```
 
 Configure additional blocklist:
 
 ```console
-$ git clone https://github.com/StevenBlack/hosts
+git clone https://github.com/StevenBlack/hosts
 
-$ sudo cp hosts/hosts /etc/dns-blocklist
+sudo cp hosts/hosts /etc/dns-blocklist
 ```
 
 ## OpenBSD
@@ -773,12 +718,11 @@ $ sudo cp hosts/hosts /etc/dns-blocklist
 To install dnsmasq as a service enabled on boot:
 
 ```console
-$ doas pkg_add dnsmasq
+doas pkg_add dnsmasq
 
-$ doas rcctl start dnsmasq
-dnsmasq(ok)
+doas rcctl start dnsmasq
 
-$ doas rcctl enable dnsmasq
+doas rcctl enable dnsmasq
 ```
 
 # Wireless
@@ -798,7 +742,7 @@ nwid NAME wpakey "PASSWORD"
 Restart networking:
 
 ```console
-$ doas sh /etc/netstart
+doas sh /etc/netstart
 ```
 
 ## Debian
@@ -806,13 +750,13 @@ $ doas sh /etc/netstart
 Install the default hostapd configuration:
 
 ```console
-# cat /usr/share/doc/hostapd/examples/hostapd.conf | tee -a /etc/hostapd.conf
+cat /usr/share/doc/hostapd/examples/hostapd.conf | sudo tee -a /etc/hostapd.conf
 ```
 
 Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
 
 ```console
-# cp config/hostapd.conf /etc/hostapd.conf
+sudo cp config/hostapd.conf /etc/hostapd.conf
 ```
 
 Edit the configuration to set the network name and password.
@@ -820,74 +764,19 @@ Edit the configuration to set the network name and password.
 *Tip* Avoid passwords with the characters `'` and `"`.
 
 ```console
-# vim /etc/hostapd.conf
+sudo vim /etc/hostapd.conf
 ```
 
 Ensure hostapd starts:
 
 ```console
-# hostapd -dd /etc/hostapd.conf
-```
-
-**Note** If there are errors, download, compile and install a [newer version of hostapd](https://w1.fi/releases/?C=M;O=D):
-
-```console
-$ curl -O https://w1.fi/releases/hostapd-2.9.tar.gz
-
-$ sha256sum hostapd-2.9.tar.gz
-881d7d6a90b2428479288d64233151448f8990ab4958e0ecaca7eeb3c9db2bd7  hostapd-2.9.tar.gz
-
-$ tar xf hostapd-2.9.tar.gz
-
-$ cd hostapd-2.9/hostapd
-
-$ sudo apt install pkg-config libnl-3-dev libssl-dev libnl-genl-3-dev
-```
-
-Edit the build configuration to enable features:
-
-```console
-$ cp defconfig .config
-
-$ vim .config
-
-# Uncomment these lines:
-CONFIG_ACS=y
-CONFIG_IEEE80211N=y
-CONFIG_IEEE80211AC=y
-```
-
-Make, install and test the new version of hostapd:
-
-```console
-$ make -sj4
-
-$ strip -s hostapd
-
-$ sudo make install
-
-$ hostapd -v
-hostapd v2.9
-
-$ sudo hostapd -d /etc/hostapd.conf
-Configuration file: /etc/hostapd.conf
-wlp5s0: interface state UNINITIALIZED->COUNTRY_UPDATE
-ACS: Automatic channel selection started, this may take a bit
-wlp5s0: interface state COUNTRY_UPDATE->ACS
-wlp5s0: ACS-STARTED
-wlp5s0: ACS-COMPLETED freq=5220 channel=44
-Using interface wlp5s0 with hwaddr ca:9c:bc:8a:c7:5b and ssid "foo"
-wlp5s0: interface state ACS->ENABLED
-wlp5s0: AP-ENABLED
-wlp5s0: STA c7:2d:df:b0:20:62 IEEE 802.11: authenticated
-wlp5s0: STA c7:2d:df:b0:20:62 IEEE 802.11: associated (aid 1)
-wlp5s0: AP-STA-CONNECTED c7:2d:df:b0:20:62
+sudo hostapd /etc/hostapd.conf
 ```
 
 **Note** You may need to manually assign the interface an address:
 
 ```console
-$ sudo ifconfig wlp5s0 192.168.1.1
+sudo ifconfig wlp5s0 192.168.1.1
 ```
 
 # IP forwarding
@@ -899,10 +788,9 @@ In order to be a router, [IP forwarding](https://www.kernel.org/doc/Documentatio
 Enable now and on boot:
 
 ```console
-$ doas sysctl net.inet.ip.forwarding=1
-net.inet.ip.forwarding: 0 -> 1
+doas sysctl net.inet.ip.forwarding=1
 
-$ echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
+echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
 ```
 
 ## Debian
@@ -910,9 +798,9 @@ $ echo "net.inet.ip.forwarding=1" | doas tee -a /etc/sysctl.conf
 Enable now and on boot:
 
 ```console
-# sysctl -w net.ipv4.ip_forward=1
+sudo sysctl -w net.ipv4.ip_forward=1
 
-# echo "net.ipv4.ip_forward=1" | tee --append /etc/sysctl.conf
+echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 ```
 
 # Configure firewall
@@ -922,19 +810,19 @@ Enable now and on boot:
 See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf](https://github.com/drduh/config/blob/master/pf/) files:
 
 ```console
-$ doas mkdir /etc/pf
+doas mkdir /etc/pf
 
-$ doas cp config/pf/pf.conf /etc/
+doas cp config/pf/pf.conf /etc/
 
-$ doas cp config/pf/blocklist config/pf/martians config/pf/private /etc/pf/
+doas cp config/pf/blocklist config/pf/martians config/pf/private /etc/pf/
 ```
 
 Turn PF off and back on again:
 
 ```console
-$ doas pfctl -d ; doas pfctl -e -f /etc/pf.conf
-pf disabled
-pf enabled 
+doas pfctl -d
+
+doas pfctl -e -f /etc/pf.conf
 ```
 
 **Optional** Use [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) to find and block unwanted networks.
@@ -942,7 +830,7 @@ pf enabled
 To inspect blocked traffic:
 
 ```console
-$ doas tcpdump -ni pflog0
+doas tcpdump -ni pflog0
 ```
 
 ## Debian
@@ -952,19 +840,19 @@ Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful fire
 Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
 
 ```console
-# cp config/scripts/iptables.sh /etc
+sudo cp config/scripts/iptables.sh /etc
 
-# vim /etc/iptables.sh
+sudo vim /etc/iptables.sh
 
-# chmod +x /etc/iptables.sh
+sudo chmod +x /etc/iptables.sh
 
-# /etc/iptables.sh
+sudo /etc/iptables.sh
 ```
 
 Save the firewall rules to apply them on boot:
 
 ```console
-# iptables-save | tee /etc/iptables/rules.v4
+sudo iptables-save | tee /etc/iptables/rules.v4
 ```
 
 # Privoxy
@@ -976,27 +864,21 @@ Save the firewall rules to apply them on boot:
 Install Privoxy:
 
 ```console
-# apt -y install privoxy
+sudo apt -y install privoxy
 ```
 
 Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
 
 ```console
-# cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
+sudo cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
 ```
 
 Restart the service and check the log:
 
 ```console
-# service privoxy restart
+sudo service privoxy restart
 
-# tail -f /var/log/privoxy/logfile
-[...]
-Info: Listening on port 8118 on IP address 127.0.0.1
-Info: Listening on port 8118 on IP address 10.8.1.1
-Info: Listening on port 8118 on IP address 172.16.1.1
-Request: example.com/
-Crunch: Redirected: http://bbc.com/
+sudo tail -f /var/log/privoxy/logfile
 ```
 
 # Lighttpd
@@ -1008,22 +890,21 @@ Crunch: Redirected: http://bbc.com/
 Install Lighttpd with ModMagnet:
 
 ```console
-# apt -y install lighttpd lighttpd-mod-magnet
+sudo apt -y install lighttpd lighttpd-mod-magnet
 ```
 
 Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
 
 ```console
-# cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
+sudo cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
 ```
 
 Restart the service and check the log:
 
 ```console
-# service lighttpd restart
+sudo service lighttpd restart
 
-# cat /var/log/lighttpd/error.log
-2019-01-01 12:00:00: (log.c.217) server started
+sudo cat /var/log/lighttpd/error.log
 ```
 
 # DNSCrypt
@@ -1033,49 +914,49 @@ First install `minisign` or build from [source](https://github.com/jedisct1/mini
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
 
 ```console
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz
+curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz
 
-$ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz.minisig
+curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz.minisig
 
-$ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
 Trusted comment: timestamp:1691773871   file:dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz   hashed
 
-$ tar xf dnscrypt-proxy*.gz
+tar xf dnscrypt-proxy*.gz
 
-$ cp config/dnscrypt-proxy.toml linux-x86_64/
+cp config/dnscrypt-proxy.toml linux-x86_64/
 
-$ cd linux-x86_64/
+cd linux-x86_64/
 
-$ vim dnscrypt-proxy.toml
+vim dnscrypt-proxy.toml
 ```
 
 **Optional** Download and configure a hosts blacklist:
 
 ```console
-$ git clone https://github.com/DNSCrypt/dnscrypt-proxy
+git clone https://github.com/DNSCrypt/dnscrypt-proxy
 
-$ cd dnscrypt-proxy/utils/generate-domains-blocklists
+cd dnscrypt-proxy/utils/generate-domains-blocklists
 
-$ python3 generate-domains-blocklist.py > blocklist-$(date +%F).txt
+python3 generate-domains-blocklist.py > blocklist-$(date +%F).txt
 
-$ cp blocklist-$(date +%F).txt ~/linux-x86_64/blocklist.txt
+cp blocklist-$(date +%F).txt ~/linux-x86_64/blocklist.txt
 ```
 
 Start the program and check `dnscrypt.log` for success or errors:
 
 ```console
-$ sudo ./dnscrypt-proxy
+sudo ./dnscrypt-proxy
 ```
 
 Once everything is working as expected, install and start dnscrypt-proxy as a service:
 
 ```console
-$ sudo ./dnscrypt-proxy -service install
+sudo ./dnscrypt-proxy -service install
 
-$ sudo ./dnscrypt-proxy -service start
+sudo ./dnscrypt-proxy -service start
 
-$ tail -f dnscrypt.log
+tail -f dnscrypt.log
 ```
 
 # Security and maintenance
@@ -1083,7 +964,7 @@ $ tail -f dnscrypt.log
 To confirm the firewall is configured correctly, run port scans from an internal and external hosts, for example:
 
 ```console
-$ nmap -v -A -T4 192.168.1.1 -Pn
+nmap -v -A -T4 192.168.1.1 -Pn
 ```
 
 To view blocked packets, tail the system message buffer on Linux:
@@ -1130,31 +1011,31 @@ Pay attention to [Debian security advisories](https://lists.debian.org/debian-se
 Install and enable [SELinux](https://wiki.debian.org/SELinux):
 
 ```console
-# apt -y install selinux-basics selinux-policy-default
+sudo apt -y install selinux-basics selinux-policy-default
 
-# selinux-activate
+sudo selinux-activate
 
-# reboot
+sudo reboot
 ```
 
 Or, install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
 ```console
-# apt -y install apparmor apparmor-profiles apparmor-utils
+sudo apt -y install apparmor apparmor-profiles apparmor-utils
 
-# mkdir -p /etc/default/grub.d
+sudo mkdir -p /etc/default/grub.d
 
-# echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | tee /etc/default/grub.d/apparmor.cfg
+echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
 
-# update-grub && reboot
+sudo update-grub && sudo reboot
 ```
 
 Install and enable [Firejail](https://firejail.wordpress.com/):
 
 ```console
-# apt -y install firejail firejail-profiles
+sudo apt -y install firejail firejail-profiles
 
-# firecfg
+sudo firecfg
 ```
 
 See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
