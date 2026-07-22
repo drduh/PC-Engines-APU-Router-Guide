@@ -1,8 +1,9 @@
-**Important** After many years of service, the PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm).
+> [!IMPORTANT]
+> After many years of service, the PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm).
 
 This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
 
-I am **not** responsible for anything you do by following any part of this guide!
+This guide is provided "as is" - without warranties of any kind. You are solely responsible for any consequences of following it.
 
 # Overview
 
@@ -28,7 +29,8 @@ This guide should work on any PC Engines APU model. Here is a suggested parts li
 | 2 x [pigsma](https://pcengines.ch/pigsma.htm) | Cable I-PEX -> reverse SMA | $2.70
 | 2 x [antsmadb](https://pcengines.ch/antsmadb.htm) | Antenna reverse SMA dual band | $4.10
 
-**Note** WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
+> [!NOTE]
+> WLE600VX and WLE900VX cards will likely not work due to [regulatory compliance reasons](https://medium.com/@renaudcerrato/how-to-build-your-own-wireless-router-from-scratch-part-3-d54eecce157f).
 
 To connect over serial, you will need a [USB to Serial (9-Pin) Converter Cable](https://www.amazon.com/gp/product/B00IDSM6BW) and [Modem Serial RS232 Cable](https://www.amazon.com/gp/product/B000067SCH), also available from [PC Engines](https://www.pcengines.ch/usbcom1a.htm).
 
@@ -46,7 +48,8 @@ See the relevant APU series manual for detailed board information:
 * [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
 * [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
 
-**Note** Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
+> [!NOTE]
+> Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
 
 1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This will equalize the potential of radio card and router board.
 1. Install the radio card in the miniPCI express socket.
@@ -85,7 +88,8 @@ Power on the APU and make note of the firmware version displayed briefly during 
 
 Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
-**Note** As of 2023, PC Engines firmware is no longer being updated - see [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
+> [!NOTE]
+> As of 2023, PC Engines firmware is no longer being updated - see [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
@@ -203,14 +207,15 @@ $ sudo dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.19.0.1 01/31/2023
 ```
 
-**Note** APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
+> [!NOTE]
+> APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
 
 ```console
 sudo apt install flashrom
 
 wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
 
-sudo flashrom -p internal -w apu2_v4.19.0.1.rom
+sudo flashrom -p internal -w apu4_v4.19.0.1.rom
 ```
 
 To complete the update, shut down Debian and power off the APU fully, then reboot.
@@ -381,7 +386,8 @@ Available disks are: sd0 sd1.
 Which disk is the root disk? ('?' for details) [sd0]
 ```
 
-**Note** The "unused" partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
+> [!NOTE]
+> The "unused" partition (`/dev/sd0c`) is actually the [entire disk](https://www.openbsd.org/faq/faq14.html#intro).
 
 Select a [mirror](https://www.openbsd.org/ftp.html) and start the installation:
 
@@ -453,7 +459,8 @@ If so, reboot and press `e` at the GRUB menu to enter edit mode, scroll down and
 console=ttyS0,115200n8
 ```
 
-**Note** If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
+> [!NOTE]
+> If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
 
 * `Control-B` to move left
 * `Control-F` to move right
@@ -462,7 +469,8 @@ console=ttyS0,115200n8
 
 Press `Control-X` to continue booting and you should see console output.
 
-**Note** If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
+> [!NOTE]
+> If you get an error like, `Alert! /dev/sdX1 does not exist dropping to shell` and are dropped to an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
 # First login
 
@@ -729,7 +737,8 @@ doas rcctl enable dnsmasq
 
 ## OpenBSD
 
-**Note** Wireless performance is currently significantly worse on OpenBSD than Debian.
+> [!NOTE]
+> Wireless performance is currently significantly worse on OpenBSD than Debian.
 
 Edit `/etc/hostname.athn0` to include:
 
@@ -773,7 +782,8 @@ Ensure hostapd starts:
 sudo hostapd /etc/hostapd.conf
 ```
 
-**Note** You may need to manually assign the interface an address:
+> [!NOTE]
+> You may need to manually assign the interface an address:
 
 ```console
 sudo ifconfig wlp5s0 192.168.1.1
@@ -911,17 +921,25 @@ sudo cat /var/log/lighttpd/error.log
 
 First install `minisign` or build from [source](https://github.com/jedisct1/minisign/releases/latest)
 
-Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest), verify it and edit the configuration:
+Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest).
 
-```console
-curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz
+```bash
+curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.17/dnscrypt-proxy-linux_x86_64-2.1.17.tar.gz
 
-curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.5/dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz.minisig
+curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.17/dnscrypt-proxy-linux_x86_64-2.1.17.tar.gz.minisig
+```
 
+Verify:
+
+```bash
 minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
-Trusted comment: timestamp:1691773871   file:dnscrypt-proxy-linux_x86_64-2.1.5.tar.gz   hashed
+Trusted comment: timestamp:1783957491	file:dnscrypt-proxy-linux_x86_64-2.1.17.tar.gz	hashed
+```
 
+Unpack and edit the configuration:
+
+```bash
 tar xf dnscrypt-proxy*.gz
 
 cp config/dnscrypt-proxy.toml linux-x86_64/
