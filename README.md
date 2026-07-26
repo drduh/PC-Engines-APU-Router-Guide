@@ -226,18 +226,18 @@ Use another computer to prepare an installer for either OpenBSD or Debian.
 
 ## OpenBSD
 
-Download the installation image - [`amd64/install75.img`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/install75.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.5/amd64/SHA256.sig) files.
+Download the installation image - [`amd64/install79.img`](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/install79.img) - as well as [`SHA256`](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/SHA256) and [`SHA256.sig`](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/SHA256.sig) files.
 
 Verify the signature file and the installation image's hash:
 
 ```console
-cat /etc/signify/openbsd-75-base.pub
-untrusted comment: openbsd 7.5 base public key
-RWRGj1pRpprAfgeF/rgld4ubduChLvTkigA1Zj7WLDsVA4qfYSWOEI8q
+$ cat /etc/signify/openbsd-79-base.pub
+untrusted comment: openbsd 7.9 base public key
+RWTSdNN9A3yvWNn7mUjXwv9DOCOUnyfuV+mq1iGPIfD+NhN8EYnEQ1at
 
-signify -C -p /etc/signify/openbsd-75-base.pub -x SHA256.sig install75.img
+$ signify -C -p /etc/signify/openbsd-79-base.pub -x SHA256.sig install79.img
 Signature Verified
-install75.img: OK
+install79.img: OK
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk:
@@ -245,13 +245,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 On OpenBSD:
 
 ```bash
-doas dd if=install75.img of=/dev/rsd2c bs=1m
+doas dd if=install79.img of=/dev/rsd2c bs=1m
 ```
 
 On Linux:
 
 ```bash
-sudo dd if=install75.img of=/dev/sdd bs=1M
+sudo dd if=install79.img of=/dev/sdd bs=1M
 ```
 
 ## Debian
@@ -263,7 +263,7 @@ Verify the signatures file and hash of the installation image:
 ```console
 $ gpg SHA512SUMS.sign
 gpg: assuming signed data in 'SHA512SUMS'
-gpg: Signature made Sat 07 Oct 2023 01:24:41 PM PDT
+gpg: Signature made Sat 11 Jul 2026 01:25:53 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Can't check signature: No public key
 
@@ -273,7 +273,7 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 $ gpg SHA512SUMS.sign
-gpg: Signature made Sat 29 Jun 2024 01:50:21 PM PDT
+gpg: Signature made Sat 11 Jul 2026 01:25:53 PM PDT
 gpg:                using RSA key DF9B9C49EAA9298432589D76DA87E80D6294BE9B
 gpg: Good signature from "Debian CD signing key <debian-cd@lists.debian.org>" [unknown]
 gpg: WARNING: This key is not certified with a trusted signature!
@@ -284,15 +284,15 @@ Primary key fingerprint: DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B
 OpenBSD:
 
 ```console
-grep $(sha512 -q debian-12.6.0-amd64-netinst.iso) SHA512SUMS
-712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
+$ grep $(sha512 -q debian-13.6.0-amd64-netinst.iso) SHA512SUMS
+ce0eeee7b51fdcdbed1e5116668c1fee27e528767bdf488e5f115a67b225e5dfd0afca1d456aaa9408ceb6b8527521ff7b6b5d62fdbe6f8c5faaf8df56a96292  debian-13.6.0-amd64-netinst.iso
 ```
 
 Linux:
 
 ```console
-grep $(sha512sum debian-12.6.0-amd64-netinst.iso) SHA512SUMS
-SHA512SUMS:712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb  debian-12.6.0-amd64-netinst.iso
+$ grep $(shasum -a 512 debian-13.6.0-amd64-netinst.iso) SHA512SUMS
+SHA512SUMS:ce0eeee7b51fdcdbed1e5116668c1fee27e528767bdf488e5f115a67b225e5dfd0afca1d456aaa9408ceb6b8527521ff7b6b5d62fdbe6f8c5faaf8df56a96292  debian-13.6.0-amd64-netinst.iso
 ```
 
 Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation file to the USB disk.
@@ -300,13 +300,13 @@ Insert a USB disk. Run `dmesg` to identify its label. Then copy the installation
 OpenBSD:
 
 ```bash
-doas dd if=debian-12.6.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
+doas dd if=debian-13.6.0-amd64-netinst.iso of=/dev/rsd2c bs=1m
 ```
 
 Linux:
 
 ```bash
-sudo dd if=debian-12.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
+sudo dd if=debian-13.6.0-amd64-netinst.iso of=/dev/sdd bs=1M
 ```
 
 Unplug the USB disk and plug it into the APU.
@@ -335,7 +335,7 @@ boot> [Press Enter]
 Select the Install option:
 
 ```console
-Welcome to the OpenBSD/amd64 7.5 installation program.
+Welcome to the OpenBSD/amd64 7.9 installation program.
 (I)nstall, (U)pgrade, (A)utoinstall or (S)hell? I
 ```
 
@@ -393,13 +393,13 @@ Select a [mirror](https://www.openbsd.org/ftp.html) and start the installation:
 
 ```console
 HTTP Server? (hostname, list#, 'done' or '?') cdn.openbsd.org
-Server directory? [pub/OpenBSD/7.5/amd64]
+Server directory? [pub/OpenBSD/7.9/amd64]
 
 Select sets by entering a set name, a file name pattern or 'all'. De-select
 sets by prepending a '-', e.g.: '-game*'. Selected sets are labelled '[X]'.
-    [X] bsd           [X] base75.tgz    [X] game75.tgz    [X] xfont75.tgz
-    [X] bsd.mp        [X] comp75.tgz    [X] xbase75.tgz   [X] xserv75.tgz
-    [X] bsd.rd        [X] man75.tgz     [X] xshare75.tgz
+    [X] bsd           [X] base79.tgz    [X] game79.tgz    [X] xfont79.tgz
+    [X] bsd.mp        [X] comp79.tgz    [X] xbase79.tgz   [X] xserv79.tgz
+    [X] bsd.rd        [X] man79.tgz     [X] xshare79.tgz
 Set name(s)? (or 'abort' or 'done') [done]
 ```
 
@@ -546,7 +546,7 @@ doas ifconfig em1 10.8.1.4 255.255.255.0
 Test it:
 
 ```console
-ping -c 1 10.8.1.1
+$ ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=255 time=0.845 ms
 ```
@@ -610,7 +610,7 @@ inet 10.8.1.4 255.255.255.0
 It should now be possible to ping the router:
 
 ```console
-ping -c 1 10.8.1.1
+$ ping -c 1 10.8.1.1
 PING 10.8.1.1 (10.8.1.1): 56 data bytes
 64 bytes from 10.8.1.1: icmp_seq=0 ttl=64 time=0.519 ms
 ```
@@ -650,14 +650,13 @@ Or generate a new SSH key on the client and copy it to clipboard:
 
 ```bash
 ssh-keygen -f -C 'sysadm' ~/.ssh/pcengines
-
 xclip ~/.ssh/pcengines.pub
 ```
 
 On the APU, over the serial connection, as the primary user (e.g., `sysadm` - *not* `root`), configure SSH to accept that key by pasting it into `~/.ssh/authorized_keys`:
 
 ```console
-mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
+$ mkdir ~/.ssh ; cat > ~/.ssh/authorized_keys
 [Paste clipboard contents using the middle mouse button or Shift-Insert]
 [Then press Control-D to save]
 ```
@@ -703,7 +702,7 @@ The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or
 
 [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) will provide [DHCP](https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol) and handle DNS for the local network(s).
 
-Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/master/dnsmasq.conf) for a configuration example, including blocked domains:
+Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/main/dnsmasq.conf) for a configuration example, including blocked domains:
 
 ```bash
 cp config/dnsmasq.conf /etc/dnsmasq.conf
@@ -757,7 +756,7 @@ Install the default hostapd configuration:
 cat /usr/share/doc/hostapd/examples/hostapd.conf | sudo tee -a /etc/hostapd.conf
 ```
 
-Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/master/hostapd.conf):
+Or use [drduh/config/hostapd.conf](https://github.com/drduh/config/blob/main/hostapd.conf):
 
 ```bash
 sudo cp config/hostapd.conf /etc/hostapd.conf
@@ -811,7 +810,7 @@ echo "net.ipv4.ip_forward=1" | sudo tee --append /etc/sysctl.conf
 
 ## OpenBSD
 
-See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf](https://github.com/drduh/config/blob/master/pf/) files:
+See [PF - Building a Router](https://www.openbsd.org/faq/pf/example1.html), or use [drduh/config/pf](https://github.com/drduh/config/blob/main/pf/) files:
 
 ```bash
 doas mkdir /etc/pf
@@ -826,7 +825,7 @@ doas pfctl -d
 doas pfctl -e -f /etc/pf.conf
 ```
 
-**Optional** Use [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/master/scripts/pf-blocklist.sh) to find and block unwanted networks.
+**Optional** Use [drduh/config/scripts/pf-blocklist.sh](https://github.com/drduh/config/blob/main/scripts/pf-blocklist.sh) to find and block unwanted networks.
 
 To inspect blocked traffic:
 
@@ -838,7 +837,7 @@ doas tcpdump -ni pflog0
 
 Use [Iptables](https://en.wikipedia.org/wiki/Iptables) to manage a stateful firewall.
 
-Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/master/scripts/iptables.sh) and edit it to your needs:
+Use [drduh/config/scripts/iptables.sh](https://github.com/drduh/config/blob/main/scripts/iptables.sh) and edit it to your needs:
 
 ```bash
 sudo cp config/scripts/iptables.sh /etc
@@ -865,7 +864,7 @@ Install Privoxy:
 sudo apt -y install privoxy
 ```
 
-Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/master/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/master/privoxy/user.action) - or edit the configuration yourself.
+Use [drduh/config/privoxy/config](https://github.com/drduh/config/blob/main/privoxy/config) and [drduh/config/privoxy/user.action](https://github.com/drduh/config/blob/main/privoxy/user.action) - or edit the configuration yourself.
 
 ```bash
 sudo cp config/privoxy/config config/privoxy/user.action /etc/privoxy/
@@ -880,7 +879,7 @@ sudo tail -f /var/log/privoxy/logfile
 
 # Lighttpd
 
-[Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModMagnet) makes for a highly capable Web server which can be used to replace ad images with custom content, upload and share content on the local network, act as a captive portal, and more.
+[Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/lighttpd/wiki/Mod_magnet) makes for a highly capable Web server which can be used to replace ad images with custom content, upload and share content on the local network, act as a captive portal, and more.
 
 ## Debian
 
@@ -890,7 +889,7 @@ Install Lighttpd with ModMagnet:
 sudo apt -y install lighttpd lighttpd-mod-magnet
 ```
 
-Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/master/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/master/lighttpd/magnet.luau) - or edit the configuration yourself.
+Use [drduh/config/lighttpd/lighttpd.conf](https://github.com/drduh/config/blob/main/lighttpd/lighttpd.conf) and [drduh/config/lighttpd/magnet.luau](https://github.com/drduh/config/blob/main/lighttpd/magnet.luau) - or edit the configuration yourself.
 
 ```bash
 sudo cp config/lighttpd/lighttpd.conf config/lighttpd/magnet.luau /etc/lighttpd/
@@ -1013,7 +1012,7 @@ sudo reboot
 
 Or, install and enable [AppArmor](https://wiki.debian.org/AppArmor), then reboot:
 
-```console
+```bash
 sudo apt -y install apparmor apparmor-profiles apparmor-utils
 sudo mkdir -p /etc/default/grub.d
 echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT apparmor=1 security=apparmor"' | sudo tee /etc/default/grub.d/apparmor.cfg
