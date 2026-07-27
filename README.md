@@ -20,7 +20,7 @@ The completed router configuration will enable:
 This guide should work on any PC Engines APU model. Here is a suggested parts list:
 
 Part | Description | Cost
----: | :---: | :---
+-: | :-: | :-
 [apu4c4](https://pcengines.ch/apu4c4.htm) | apu4c4 system board | $117.50
 [case1d2bluu](https://pcengines.ch/case1d2bluu.htm) | Enclosure 3 LAN, blue | $9.40
 [ac12vus2](https://pcengines.ch/ac12vus2.htm) | AC adapter 12V 2A US plug | $4.10
@@ -48,8 +48,8 @@ See the relevant APU series manual for detailed board information:
 * [APU3](https://www.pcengines.ch/pdf/apu3.pdf)
 * [APU4](https://www.pcengines.ch/pdf/apu4.pdf)
 
-> [!NOTE]
-> Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm):
+> [!CAUTION]
+> Wireless radio cards are ESD sensitive, especially the RF switch and the power amplifier. To avoid damage by electrostatic discharge, the following installation procedure is [recommended](https://www.pcengines.ch/wle200nx.htm)
 
 1. Touch your hands and the bag containing the radio card to a ground point on the router board (for example one of the mounting holes). This equalizes the electrical potential between the radio card and the router board.
 1. Install the radio card in the miniPCI express socket.
@@ -89,7 +89,7 @@ Power on the APU and note the firmware version displayed briefly during boot.
 Check for the latest PC Engines firmware version at [pcengines.github.io](https://pcengines.github.io/)
 
 > [!NOTE]
-> As of 2023, PC Engines firmware is no longer being updated. See [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/)
+> As of 2023, PC Engines firmware is no longer being updated. See [announcement](https://docs.dasharo.com/variants/pc_engines/post-eol-fw-announcement/).
 
 To update firmware, first download and extract [TinyCore Linux](https://pcengines.ch/file/apu2-tinycore6.4.img.gz).
 
@@ -178,7 +178,7 @@ Erasing and writing flash chip... Erase/write done.
 Verifying flash... VERIFIED.
 ```
 
-Unplug the USB disk and `reboot`
+Unplug the USB disk and reboot.
 
 **Optional** On reboot, press `F10`, select `Payload [setup]`, press `w` to enable BIOS write protection, then press `s` to save and reboot.
 
@@ -207,14 +207,11 @@ $ sudo dmesg | grep apu
 [    0.000000] DMI: PC Engines apu4/apu4, BIOS v4.19.0.1 01/31/2023
 ```
 
-> [!NOTE]
-> APU firmware can also be updated from Debian, without rebooting to TinyCore Linux:
+APU firmware can also be updated from Debian without rebooting to TinyCore Linux:
 
 ```bash
 sudo apt install flashrom
-
 wget https://3mdeb.com/open-source-firmware/pcengines/apu4/apu4_v4.19.0.1.rom
-
 sudo flashrom -p internal -w apu4_v4.19.0.1.rom
 ```
 
@@ -459,17 +456,16 @@ If so, reboot and press `e` at the GRUB menu to enter edit mode, scroll down and
 console=ttyS0,115200n8
 ```
 
-> [!NOTE]
-> If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
+If arrow keys do not work in GRUB, try using Emacs key bindings to navigate the text field:
 
 * `Control-B` to move left
 * `Control-F` to move right
 * `Control-P` to move up
 * `Control-N` to move down
 
-Press `Control-X` to continue booting and you should see console output.
+Press `Control-X` to continue booting and console output should appear.
 
-> [!NOTE]
+> [!TIP]
 > If you see `Alert! /dev/sdX1 does not exist dropping to shell` and reach an initramfs prompt, reboot and edit the `quiet` line to point to `/dev/sda1` or correct partition.
 
 # First login
@@ -710,11 +706,12 @@ cat config/domains/* | tee -a /etc/dnsmasq.conf
 vim /etc/dnsmasq.conf
 ```
 
-Configure additional blocklist:
+Configure an additional blocklist:
 
 ```bash
-git clone https://github.com/StevenBlack/hosts
+git clone --depth 1 https://github.com/StevenBlack/hosts
 sudo cp hosts/hosts /etc/dns-blocklist
+sudo chmod 0744 /etc/dns-blocklist
 ```
 
 ## OpenBSD
@@ -930,7 +927,7 @@ cd linux-x86_64/
 vim dnscrypt-proxy.toml
 ```
 
-**Optional** Download and configure a hosts blacklist:
+**Optional** Download and configure a hosts blocklist:
 
 ```bash
 git clone https://github.com/DNSCrypt/dnscrypt-proxy
