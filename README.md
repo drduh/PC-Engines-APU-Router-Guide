@@ -1,7 +1,7 @@
 > [!IMPORTANT]
 > After many years of service, the PC Engines APU platform is now [EOL](https://www.pcengines.ch/eol.htm).
 
-This guide demonstrates how to build a wired/wireless router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter Web traffic, and more.
+This guide demonstrates how to build a router using the PC Engines [APU platform](https://www.pcengines.ch/apu.htm) and a free operating system like [OpenBSD](https://www.openbsd.org/) or [Debian](https://www.debian.org/distrib/) to be used for [network address translation](https://computer.howstuffworks.com/nat.htm), as a stateful firewall, to filter web traffic, and more.
 
 This guide is provided "as is" - without warranties of any kind. You are solely responsible for any consequences of following it.
 
@@ -590,7 +590,7 @@ netmask 255.255.255.0
 gateway 10.8.1.1
 ```
 
-Then also restart networking and bring up the interface:
+Then restart networking and bring up the interface:
 
 ```bash
 sudo service networking restart
@@ -692,7 +692,7 @@ Download configuration files:
 git clone https://github.com/drduh/config
 ```
 
-The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or `exit` before disconnecting, otherwise anyone can plug in the serial cable to assume your session without a passphrase.
+The serial connection can now be terminated. Log out with `Ctrl-D` or `exit` before disconnecting, otherwise anyone can plug in the serial cable to resume the session.
 
 # DHCP and DNS
 
@@ -701,9 +701,9 @@ The serial connection can now be terminated. Be sure to log out with `Ctrl-D` or
 Use [drduh/config/dnsmasq.conf](https://github.com/drduh/config/blob/main/dnsmasq.conf) for a configuration example, including blocked domains:
 
 ```bash
-cp config/dnsmasq.conf /etc/dnsmasq.conf
-cat config/domains/* | tee -a /etc/dnsmasq.conf
-vim /etc/dnsmasq.conf
+sudo cp config/dnsmasq.conf /etc/dnsmasq.conf
+cat config/domains/* | sudo tee -a /etc/dnsmasq.conf
+sudo vim /etc/dnsmasq.conf
 ```
 
 Configure an additional blocklist:
@@ -768,14 +768,13 @@ Edit the configuration to set the network name and password.
 sudo vim /etc/hostapd.conf
 ```
 
-Ensure hostapd starts:
+Start hostapd:
 
 ```bash
 sudo hostapd /etc/hostapd.conf
 ```
 
-> [!NOTE]
-> You may need to manually assign the interface an address:
+The interface may need manual address assignment:
 
 ```bash
 sudo ifconfig wlp5s0 192.168.1.1
@@ -851,7 +850,7 @@ sudo iptables-save | tee /etc/iptables/rules.v4
 
 # Privoxy
 
-[Privoxy](https://www.privoxy.org/) is a powerful Web proxy capable of filtering and rewriting URLs to block ads, upgrade HTTP connections, and more.
+[Privoxy](https://www.privoxy.org/) is a powerful proxy capable of filtering requests.
 
 ## Debian
 
@@ -876,7 +875,7 @@ sudo tail -f /var/log/privoxy/logfile
 
 # Lighttpd
 
-[Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/lighttpd/wiki/Mod_magnet) makes for a highly capable Web server which can be used to replace ad images with custom content, upload and share content on the local network, act as a captive portal, and more.
+[Lighttpd](https://www.lighttpd.net/) with [mod_magnet](https://redmine.lighttpd.net/projects/lighttpd/wiki/Mod_magnet) makes for a highly capable web server which can be used to replace ad images with custom content, upload and share content on the local network, act as a captive portal, and more.
 
 ## Debian
 
@@ -901,7 +900,7 @@ sudo cat /var/log/lighttpd/error.log
 
 # DNSCrypt
 
-First install `minisign` or build from [source](https://github.com/jedisct1/minisign/releases/latest)
+First, install `minisign` or build from [source](https://github.com/jedisct1/minisign/releases/latest).
 
 Download the latest Linux release - [`dnscrypt-proxy-linux_x86_64-*.tar.gz`](https://github.com/DNSCrypt/dnscrypt-proxy/releases/latest).
 
@@ -912,8 +911,8 @@ curl -LfO https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.17/dn
 
 Verify:
 
-```bash
-minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
+```console
+$ minisign -Vm dnscrypt-proxy-*.tar.gz -P RWTk1xXqcTODeYttYMCMLo0YJHaFEHn7a3akqHlb/7QvIQXHVPxKbjB5
 Signature and comment signature verified
 Trusted comment: timestamp:1783957491	file:dnscrypt-proxy-linux_x86_64-2.1.17.tar.gz	hashed
 ```
@@ -930,19 +929,13 @@ vim dnscrypt-proxy.toml
 **Optional** Download and configure a hosts blocklist:
 
 ```bash
-git clone https://github.com/DNSCrypt/dnscrypt-proxy
-cd dnscrypt-proxy/utils/generate-domains-blocklists
+git clone --depth 1 https://github.com/DNSCrypt/dnscrypt-proxy
+cd dnscrypt-proxy/utils/generate-domains-blocklist
 python3 generate-domains-blocklist.py > blocklist-$(date +%F).txt
 cp blocklist-$(date +%F).txt ~/linux-x86_64/blocklist.txt
 ```
 
-Start the program and check `dnscrypt.log` for success or errors:
-
-```bash
-sudo ./dnscrypt-proxy
-```
-
-Once everything is working as expected, install and start dnscrypt-proxy as a service:
+Install and start the service:
 
 ```bash
 sudo ./dnscrypt-proxy -service install
@@ -1031,4 +1024,3 @@ See also [Debian SSD Optimizations](https://wiki.debian.org/SSDOptimization).
 * [martinbaillie/homebrew-openbsd-pcengines-router](https://github.com/martinbaillie/homebrew-openbsd-pcengines-router)
 * [northox/openbsd-apu2](https://github.com/northox/openbsd-apu2)
 * [vedetta-com/vedetta](https://github.com/vedetta-com/vedetta)
-
