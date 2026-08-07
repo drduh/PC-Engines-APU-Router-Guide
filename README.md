@@ -2,6 +2,8 @@ This guide demonstrates how to build a router using a free operating system like
 
 This guide is provided "as is" - without warranties of any kind. You are solely responsible for any consequences of following it.
 
+See [legacy/pcengines.md](https://github.com/drduh/Router-Guide/blob/main/legacy/pcengines.md) for previous instructions to configure the PC Engines APU platform.
+
 # Overview
 
 The completed router configuration will enable:
